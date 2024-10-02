@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   HomePage({super.key});
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  // Track which category is currently expanded
+  int? expandedCategoryIndex;
 
   // Categories and their unique, strongest features
   final List<Map<String, dynamic>> categories = [
@@ -17,9 +25,8 @@ class HomePage extends StatelessWidget {
               'Use AI to tailor your resume to specific job descriptions.',
         },
         {
-          'title':
-              'Build Resume', // Updated Resume flow to start with Personal Info
-          'route': '/personalInfo', // Navigate to personal info first
+          'title': 'Build Resume',
+          'route': '/personalInfo',
           'icon': Icons.edit,
           'description':
               'Start building your resume with personal information.',
@@ -81,41 +88,117 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: Row(
+          children: [
+            const Text('Home'),
+            const SizedBox(width: 16),
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(categories.length, (index) {
+                    final category = categories[index];
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (expandedCategoryIndex == index) {
+                            // Collapse if already expanded
+                            expandedCategoryIndex = null;
+                          } else {
+                            // Expand the selected category
+                            expandedCategoryIndex = index;
+                          }
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0, vertical: 8.0),
+                        margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                        decoration: BoxDecoration(
+                          color: expandedCategoryIndex == index
+                              ? Colors.blue[700]
+                              : Colors.blueAccent,
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(category['icon'],
+                                color: Colors.white, size: 24),
+                            const SizedBox(width: 8),
+                            Text(
+                              category['title'],
+                              style: const TextStyle(
+                                  fontSize: 16, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ),
+          ],
+        ),
         backgroundColor: Colors.blueAccent,
       ),
-      body: ListView(
+      body: Stack(
         children: [
-          // Generate ExpansionTiles for each category
-          ...categories.map((category) {
-            return ExpansionTile(
-              leading: Icon(category['icon'], color: Colors.blueAccent),
-              title: Text(
-                category['title'],
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          // Main Content
+          Positioned.fill(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  // Additional content
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: const Text(
+                      'Welcome to the Career Enhancement Platform!',
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  // Add more content here if needed
+                ],
               ),
-              children: category['features'].map<Widget>((feature) {
-                return ListTile(
-                  leading: Icon(feature['icon'], color: Colors.blueAccent),
-                  title: Text(feature['title']),
-                  subtitle: Text(feature['description']),
-                  onTap: () {
-                    Navigator.pushNamed(context, feature['route']);
-                  },
-                );
-              }).toList(),
-            );
-          }).toList(),
-          // Additional content
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: const Text(
-              'Welcome to the Career Enhancement Platform!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
             ),
           ),
+          // Subcategories Dropdown
+          if (expandedCategoryIndex != null)
+            Positioned(
+              top: kToolbarHeight, // Positions the submenu below the AppBar
+              left: 0,
+              right: 0,
+              child: Container(
+                color: Colors.blue[100],
+                constraints: BoxConstraints(
+                  maxHeight:
+                      MediaQuery.of(context).size.height - kToolbarHeight,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: categories[expandedCategoryIndex!]['features']
+                        .map<Widget>((feature) {
+                      return ListTile(
+                        leading:
+                            Icon(feature['icon'], color: Colors.blueAccent),
+                        title: Text(feature['title']),
+                        subtitle: Text(feature['description']),
+                        onTap: () {
+                          Navigator.pushNamed(context, feature['route']);
+                          // Collapse the submenu after navigation
+                          setState(() {
+                            expandedCategoryIndex = null;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
