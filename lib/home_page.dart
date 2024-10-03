@@ -10,6 +10,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   // Track which category is currently expanded
   int? expandedCategoryIndex;
+  bool isHoveringCategory = false; // Track if hovering category
+  bool isHoveringSubmenu = false; // Track if hovering submenu
 
   // Categories and their unique, strongest features
   final List<Map<String, dynamic>> categories = [
@@ -86,6 +88,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final double appBarHeight = kToolbarHeight - 60;
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -98,22 +102,28 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   children: List.generate(categories.length, (index) {
                     final category = categories[index];
-                    return GestureDetector(
-                      onTap: () {
+                    return MouseRegion(
+                      onEnter: (_) {
                         setState(() {
-                          if (expandedCategoryIndex == index) {
-                            // Collapse if already expanded
-                            expandedCategoryIndex = null;
-                          } else {
-                            // Expand the selected category
-                            expandedCategoryIndex = index;
+                          isHoveringCategory = true;
+                          expandedCategoryIndex = index;
+                        });
+                      },
+                      onExit: (_) {
+                        // Delay before checking if submenu is hovered
+                        Future.delayed(Duration(milliseconds: 100), () {
+                          if (!isHoveringSubmenu) {
+                            setState(() {
+                              expandedCategoryIndex = null;
+                            });
                           }
+                          isHoveringCategory = false;
                         });
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12.0, vertical: 8.0),
-                        margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                            horizontal: 16.0, vertical: 12.0),
+                        margin: const EdgeInsets.symmetric(horizontal: 8.0),
                         decoration: BoxDecoration(
                           color: expandedCategoryIndex == index
                               ? Colors.blue[700]
@@ -144,57 +154,64 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Stack(
         children: [
-          // Main Content
+          // Main Content with grey background when category is expanded
           Positioned.fill(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  // Additional content
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: const Text(
-                      'Welcome to the Career Enhancement Platform!',
-                      style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  // Add more content here if needed
-                ],
+            child: Container(
+              color: expandedCategoryIndex != null
+                  ? Colors.black.withOpacity(0.7) // Grey overlay when expanded
+                  : Colors.transparent,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    // You can add more content here
+                  ],
+                ),
               ),
             ),
           ),
-          // Subcategories Dropdown
+          // Subcategories Dropdown directly below the top row (AppBar)
           if (expandedCategoryIndex != null)
             Positioned(
-              top: kToolbarHeight, // Positions the submenu below the AppBar
+              top: appBarHeight, // Align dropdown directly below the AppBar
               left: 0,
               right: 0,
-              child: Container(
-                color: Colors.blue[100],
-                constraints: BoxConstraints(
-                  maxHeight:
-                      MediaQuery.of(context).size.height - kToolbarHeight,
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: categories[expandedCategoryIndex!]['features']
-                        .map<Widget>((feature) {
-                      return ListTile(
-                        leading:
-                            Icon(feature['icon'], color: Colors.blueAccent),
-                        title: Text(feature['title']),
-                        subtitle: Text(feature['description']),
-                        onTap: () {
-                          Navigator.pushNamed(context, feature['route']);
-                          // Collapse the submenu after navigation
-                          setState(() {
-                            expandedCategoryIndex = null;
-                          });
-                        },
-                      );
-                    }).toList(),
+              child: MouseRegion(
+                onEnter: (_) {
+                  setState(() {
+                    isHoveringSubmenu = true;
+                  });
+                },
+                onExit: (_) {
+                  setState(() {
+                    isHoveringSubmenu = false;
+                    // Collapse if not hovering category anymore
+                    if (!isHoveringCategory) {
+                      expandedCategoryIndex = null;
+                    }
+                  });
+                },
+                child: Container(
+                  color: Colors.blue[100],
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: categories[expandedCategoryIndex!]['features']
+                          .map<Widget>((feature) {
+                        return ListTile(
+                          leading:
+                              Icon(feature['icon'], color: Colors.blueAccent),
+                          title: Text(feature['title']),
+                          subtitle: Text(feature['description']),
+                          onTap: () {
+                            Navigator.pushNamed(context, feature['route']);
+                            // Collapse the submenu after navigation
+                            setState(() {
+                              expandedCategoryIndex = null;
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
               ),
