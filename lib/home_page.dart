@@ -86,6 +86,13 @@ class _HomePageState extends State<HomePage> {
     },
   ];
 
+  void _updateHoverState(bool isCategoryHover, bool isSubmenuHover) {
+    setState(() {
+      isHoveringCategory = isCategoryHover;
+      isHoveringSubmenu = isSubmenuHover;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final double appBarHeight = kToolbarHeight - 60;
@@ -104,20 +111,20 @@ class _HomePageState extends State<HomePage> {
                     final category = categories[index];
                     return MouseRegion(
                       onEnter: (_) {
+                        _updateHoverState(true, false); // Hovering category
                         setState(() {
-                          isHoveringCategory = true;
                           expandedCategoryIndex = index;
                         });
                       },
                       onExit: (_) {
-                        // Delay before checking if submenu is hovered
-                        Future.delayed(Duration(milliseconds: 100), () {
-                          if (!isHoveringSubmenu) {
+                        _updateHoverState(
+                            false, isHoveringSubmenu); // Leave category
+                        Future.delayed(const Duration(milliseconds: 50), () {
+                          if (!isHoveringCategory && !isHoveringSubmenu) {
                             setState(() {
                               expandedCategoryIndex = null;
                             });
                           }
-                          isHoveringCategory = false;
                         });
                       },
                       child: Container(
@@ -162,8 +169,8 @@ class _HomePageState extends State<HomePage> {
                   : Colors.transparent,
               child: SingleChildScrollView(
                 child: Column(
-                  children: [
-                    const SizedBox(height: 20),
+                  children: const [
+                    SizedBox(height: 20),
                     // You can add more content here
                   ],
                 ),
@@ -178,16 +185,15 @@ class _HomePageState extends State<HomePage> {
               right: 0,
               child: MouseRegion(
                 onEnter: (_) {
-                  setState(() {
-                    isHoveringSubmenu = true;
-                  });
+                  _updateHoverState(false, true); // Hovering submenu
                 },
                 onExit: (_) {
-                  setState(() {
-                    isHoveringSubmenu = false;
-                    // Collapse if not hovering category anymore
-                    if (!isHoveringCategory) {
-                      expandedCategoryIndex = null;
+                  _updateHoverState(isHoveringCategory, false); // Leave submenu
+                  Future.delayed(const Duration(milliseconds: 50), () {
+                    if (!isHoveringCategory && !isHoveringSubmenu) {
+                      setState(() {
+                        expandedCategoryIndex = null;
+                      });
                     }
                   });
                 },
