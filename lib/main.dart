@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:job_seeker/pages/resume_provider.dart';
 import 'package:job_seeker/pages/resume_form_page.dart';
-import 'package:job_seeker/pages/next_page.dart';
+import 'package:job_seeker/pages/summary.dart';
 import 'package:job_seeker/pages/personal_info_form_page.dart'; // Add PersonalInfoFormPage
 import 'package:job_seeker/pages/education_form_page.dart'; // Add EducationFormPage
 import 'package:job_seeker/pages/skills_form_page.dart'; // Add SkillsFormPage
@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
             const LanguagesFormPage(), // Languages form
         '/resumeForm': (context) => const ResumeFormPage(),
         '/nextPage': (context) =>
-            const NextPage(), // Final page to show all experiences
+            const Summary(), // Final page to show all experiences
         // Other routes for additional features
         '/resumeTailoring': (context) => const ResumeTailoringPage(),
         '/resumeGenerator': (context) => const ResumeGeneratorPage(),

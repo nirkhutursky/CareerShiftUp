@@ -96,11 +96,25 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
         return ExpansionPanel(
           headerBuilder: (BuildContext context, bool isExpanded) {
             return ListTile(
-              title: Text(
-                skill.skillController.text.isEmpty
-                    ? 'Skill ${index + 1}'
-                    : skill.skillController.text,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+              title: Row(
+                children: [
+                  // Skill Name (Flexible)
+                  Expanded(
+                    child: _buildTextFormField(
+                      label: 'Skill Name (Required)',
+                      icon: Icons.label,
+                      controller: skill.skillController,
+                      isMandatory: true,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+
+                  // Proficiency Dropdown (Fixed Width)
+                  SizedBox(
+                    width: 150, // Fixed width for the dropdown
+                    child: _buildProficiencyDropdown(skill),
+                  ),
+                ],
               ),
             );
           },
@@ -108,18 +122,6 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                _buildTextFormField(
-                  label: 'Skill Name (Required)',
-                  icon: Icons.label,
-                  controller: skill.skillController,
-                  isMandatory: true,
-                ),
-                _buildTextFormField(
-                  label: 'Proficiency (e.g., Beginner, Intermediate, Expert)',
-                  icon: Icons.bar_chart,
-                  controller: skill.proficiencyController,
-                  isMandatory: true,
-                ),
                 const SizedBox(height: 10),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -161,6 +163,60 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
           isExpanded: _isExpandedList[index],
         );
       }),
+    );
+  }
+
+  Widget _buildProficiencyDropdown(Skill skill) {
+    // Proficiency levels list
+    const List<String> proficiencyLevels = [
+      'Beginner',
+      'Intermediate',
+      'Advanced',
+      'Expert'
+    ];
+
+    // Set the initial value of the dropdown to the first option ('Beginner')
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: DropdownButtonFormField<String>(
+        // Initialize the dropdown with the first value if no value is set
+        value: skill.proficiencyController.text.isNotEmpty
+            ? skill.proficiencyController.text
+            : proficiencyLevels[0], // Default to 'Beginner'
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(),
+          filled: true,
+          fillColor: Colors.blue[50],
+          contentPadding: const EdgeInsets.symmetric(
+              vertical: 14.0, horizontal: 10.0), // Align with TextField height
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.0), // Rounded corners
+            borderSide: const BorderSide(color: Colors.transparent),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.0),
+            borderSide: const BorderSide(color: Colors.blueAccent),
+          ),
+        ),
+        isDense: true, // Makes the dropdown appear more compact
+        onChanged: (String? newValue) {
+          setState(() {
+            skill.proficiencyController.text = newValue!; // Update value
+          });
+        },
+        items: proficiencyLevels.map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please select a proficiency level';
+          }
+          return null;
+        },
+      ),
     );
   }
 

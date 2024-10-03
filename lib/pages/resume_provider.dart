@@ -41,6 +41,7 @@ class Education {
   TextEditingController fieldOfStudyController;
   TextEditingController startYearController;
   TextEditingController endYearController;
+  bool isSaved; // Add isSaved to track the save state of the education entry
 
   Education({
     required this.schoolNameController,
@@ -48,6 +49,7 @@ class Education {
     required this.fieldOfStudyController,
     required this.startYearController,
     required this.endYearController,
+    this.isSaved = false, // Default value is false
   });
 
   void dispose() {
@@ -57,13 +59,6 @@ class Education {
     startYearController.dispose();
     endYearController.dispose();
   }
-
-  // Getters for convenience
-  String get schoolName => schoolNameController.text;
-  String get degree => degreeController.text;
-  String get fieldOfStudy => fieldOfStudyController.text;
-  String get startYear => startYearController.text;
-  String get endYear => endYearController.text;
 }
 
 class Skill {
@@ -86,20 +81,18 @@ class Skill {
 class Language {
   TextEditingController languageNameController;
   TextEditingController proficiencyController;
+  bool isSaved; // Add this property to track whether the entry is saved
 
   Language({
     required this.languageNameController,
     required this.proficiencyController,
+    this.isSaved = false, // Default value is false until saved
   });
 
   void dispose() {
     languageNameController.dispose();
     proficiencyController.dispose();
   }
-
-  // Getters for convenience
-  String get languageName => languageNameController.text;
-  String get proficiency => proficiencyController.text;
 }
 
 class ResumeProvider with ChangeNotifier {
