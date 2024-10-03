@@ -1,5 +1,3 @@
-// resume_provider.dart
-
 import 'package:flutter/material.dart';
 
 class WorkExperience {
@@ -37,6 +35,73 @@ class WorkExperience {
   String get description => descriptionController.text;
 }
 
+class Education {
+  TextEditingController schoolNameController;
+  TextEditingController degreeController;
+  TextEditingController fieldOfStudyController;
+  TextEditingController startYearController;
+  TextEditingController endYearController;
+
+  Education({
+    required this.schoolNameController,
+    required this.degreeController,
+    required this.fieldOfStudyController,
+    required this.startYearController,
+    required this.endYearController,
+  });
+
+  void dispose() {
+    schoolNameController.dispose();
+    degreeController.dispose();
+    fieldOfStudyController.dispose();
+    startYearController.dispose();
+    endYearController.dispose();
+  }
+
+  // Getters for convenience
+  String get schoolName => schoolNameController.text;
+  String get degree => degreeController.text;
+  String get fieldOfStudy => fieldOfStudyController.text;
+  String get startYear => startYearController.text;
+  String get endYear => endYearController.text;
+}
+
+class Skill {
+  TextEditingController skillController;
+  TextEditingController proficiencyController;
+  bool isSaved; // Add isSaved field to track if the skill has been saved
+
+  Skill({
+    required this.skillController,
+    required this.proficiencyController,
+    this.isSaved = false, // Default isSaved to false initially
+  });
+
+  void dispose() {
+    skillController.dispose();
+    proficiencyController.dispose();
+  }
+}
+
+class Language {
+  TextEditingController languageNameController;
+  TextEditingController proficiencyController;
+
+  Language({
+    required this.languageNameController,
+    required this.proficiencyController,
+  });
+
+  void dispose() {
+    languageNameController.dispose();
+    proficiencyController.dispose();
+  }
+
+  // Getters for convenience
+  String get languageName => languageNameController.text;
+  String get proficiency => proficiencyController.text;
+}
+
 class ResumeProvider with ChangeNotifier {
   // Personal Info
   TextEditingController fullNameController = TextEditingController();
@@ -48,8 +113,14 @@ class ResumeProvider with ChangeNotifier {
   // Work Experiences
   List<WorkExperience> _workExperiences = [];
 
-  // Other Sections (e.g., Education, Skills)
-  // Add more fields here as needed
+  // Education
+  List<Education> _educationList = [];
+
+  // Skills
+  List<Skill> _skillsList = [];
+
+  // Languages
+  List<Language> _languagesList = [];
 
   // Methods to manage work experiences
   void addExperience(WorkExperience experience) {
@@ -67,6 +138,54 @@ class ResumeProvider with ChangeNotifier {
 
   List<WorkExperience> get getAllExperiences => _workExperiences;
 
+  // Methods to manage education
+  void addEducation(Education education) {
+    _educationList.add(education);
+    notifyListeners();
+  }
+
+  void removeEducation(int index) {
+    if (index < _educationList.length) {
+      _educationList[index].dispose();
+      _educationList.removeAt(index);
+      notifyListeners();
+    }
+  }
+
+  List<Education> get getAllEducation => _educationList;
+
+  // Methods to manage skills
+  void addSkill(Skill skill) {
+    _skillsList.add(skill);
+    notifyListeners();
+  }
+
+  void removeSkill(int index) {
+    if (index < _skillsList.length) {
+      _skillsList[index].dispose();
+      _skillsList.removeAt(index);
+      notifyListeners();
+    }
+  }
+
+  List<Skill> get getAllSkills => _skillsList;
+
+  // Methods to manage languages
+  void addLanguage(Language language) {
+    _languagesList.add(language);
+    notifyListeners();
+  }
+
+  void removeLanguage(int index) {
+    if (index < _languagesList.length) {
+      _languagesList[index].dispose();
+      _languagesList.removeAt(index);
+      notifyListeners();
+    }
+  }
+
+  List<Language> get getAllLanguages => _languagesList;
+
   // Dispose method to clean up controllers
   void disposeControllers() {
     fullNameController.dispose();
@@ -77,6 +196,18 @@ class ResumeProvider with ChangeNotifier {
 
     for (var experience in _workExperiences) {
       experience.dispose();
+    }
+
+    for (var education in _educationList) {
+      education.dispose();
+    }
+
+    for (var skill in _skillsList) {
+      skill.dispose();
+    }
+
+    for (var language in _languagesList) {
+      language.dispose();
     }
   }
 }

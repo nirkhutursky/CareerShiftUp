@@ -63,7 +63,7 @@ class PersonalInfoFormPage extends StatelessWidget {
               ),
               onPressed: () {
                 if (_validateInputs(resumeProvider)) {
-                  Navigator.pushNamed(context, '/resumeForm');
+                  Navigator.pushNamed(context, '/educationForm');
                 } else {
                   _showErrorDialog(
                       context, 'Please fill in all required fields.');

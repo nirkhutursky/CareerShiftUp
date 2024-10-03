@@ -4,6 +4,9 @@ import 'package:job_seeker/pages/resume_provider.dart';
 import 'package:job_seeker/pages/resume_form_page.dart';
 import 'package:job_seeker/pages/next_page.dart';
 import 'package:job_seeker/pages/personal_info_form_page.dart'; // Add PersonalInfoFormPage
+import 'package:job_seeker/pages/education_form_page.dart'; // Add EducationFormPage
+import 'package:job_seeker/pages/skills_form_page.dart'; // Add SkillsFormPage
+import 'package:job_seeker/pages/languages_form_page.dart'; // Add LanguagesFormPage
 import 'home_page.dart'; // Import the new home page
 
 import 'package:job_seeker/pages/resume_tailoring_page.dart';
@@ -32,10 +35,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Career Shift Up',
-      initialRoute: '/',
+      initialRoute: '/', // Start from Personal Info
       routes: {
         '/': (context) => HomePage(),
         '/personalInfo': (context) => const PersonalInfoFormPage(),
+        '/educationForm': (context) =>
+            const EducationFormPage(), // Education form
+        '/skillsForm': (context) => const SkillsFormPage(), // Skills form
+        '/languagesForm': (context) =>
+            const LanguagesFormPage(), // Languages form
         '/resumeForm': (context) => const ResumeFormPage(),
         '/nextPage': (context) =>
             const NextPage(), // Final page to show all experiences
