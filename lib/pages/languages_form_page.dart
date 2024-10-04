@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'resume_provider.dart'; // Import ResumeProvider
+import 'shared_layout.dart'; // Import the shared layout
 
 class LanguagesFormPage extends StatefulWidget {
   const LanguagesFormPage({Key? key}) : super(key: key);
@@ -27,45 +28,48 @@ class _LanguagesFormPageState extends State<LanguagesFormPage> {
   Widget build(BuildContext context) {
     final resumeProvider = Provider.of<ResumeProvider>(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Languages Information'),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: <Widget>[
-          // Build list of language fields
-          _buildLanguagePanelList(resumeProvider),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                resumeProvider.addLanguage(Language(
-                  languageNameController: TextEditingController(),
-                  proficiencyController: TextEditingController(),
-                ));
-                _isExpandedList.add(true); // Expand the new entry
-              });
-            },
-            child: const Text('Add Language'),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
-            onPressed: () {
-              if (_validateLanguages(resumeProvider)) {
-                Navigator.pushNamed(
-                    context, '/resumeForm'); // Navigate to resume form
-              } else {
-                _showErrorDialog(
-                    context, 'Please fill in all required fields.');
-              }
-            },
-            child: const Text('Submit Languages',
-                style: TextStyle(color: Colors.white)),
-          ),
-        ],
+    return SharedLayout(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Languages Information'),
+          backgroundColor: Colors.blueAccent,
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: <Widget>[
+            // Build list of language fields
+            _buildLanguagePanelList(resumeProvider),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  resumeProvider.addLanguage(Language(
+                    languageNameController: TextEditingController(),
+                    proficiencyController: TextEditingController(),
+                  ));
+                  _isExpandedList.add(true); // Expand the new entry
+                });
+              },
+              child: const Text('Add Language'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
+              onPressed: () {
+                if (_validateLanguages(resumeProvider)) {
+                  Navigator.pushNamed(
+                      context, '/resumeForm'); // Navigate to resume form
+                } else {
+                  _showErrorDialog(
+                      context, 'Please fill in all required fields.');
+                }
+              },
+              child: const Text('Submit Languages',
+                  style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
   }

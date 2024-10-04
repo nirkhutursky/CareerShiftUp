@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'shared_layout.dart'; // Import SharedLayout
 
 class ApplicationTrackerPage extends StatelessWidget {
   const ApplicationTrackerPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Placeholder for the Resume Tailoring with AI page
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Application track'),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: const Center(
-        child: Text(
-          'Application track',
-          style: TextStyle(fontSize: 24),
+    // Use SharedLayout to wrap the content
+    return SharedLayout(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Application Tracker'),
+          backgroundColor: Colors.blueAccent,
+        ),
+        body: const Center(
+          child: Text(
+            'Application track',
+            style: TextStyle(fontSize: 24),
+          ),
         ),
       ),
     );

@@ -1,7 +1,6 @@
-// resume_form_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'shared_layout.dart'; // Import the shared layout
 import 'resume_provider.dart';
 
 class ResumeFormPage extends StatefulWidget {
@@ -26,49 +25,46 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
   }
 
   @override
-  void dispose() {
-    // No need to dispose controllers here, as they are managed in the provider
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final resumeProvider = Provider.of<ResumeProvider>(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Resume Builder - Work Experience'),
-        backgroundColor: Colors.blueAccent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context); // Navigate back to personal info page
-          },
+    return SharedLayout(
+      // Use SharedLayout to include the top menu
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Resume Builder - Work Experience'),
+          backgroundColor: Colors.blueAccent,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context); // Navigate back to personal info page
+            },
+          ),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: <Widget>[
-            _buildWorkExperiencePanelList(resumeProvider),
-            _buildAddExperienceButton(resumeProvider),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ListView(
+            children: <Widget>[
+              _buildWorkExperiencePanelList(resumeProvider),
+              _buildAddExperienceButton(resumeProvider),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                ),
+                onPressed: () {
+                  if (_validateInputs(resumeProvider)) {
+                    Navigator.pushNamed(context, '/nextPage');
+                  } else {
+                    _showErrorDialog(context,
+                        "Please fill in all required fields or delete unnecessary work experiences.");
+                  }
+                },
+                child: const Text('Submit Work Experiences',
+                    style: TextStyle(color: Colors.white)),
               ),
-              onPressed: () {
-                if (_validateInputs(resumeProvider)) {
-                  Navigator.pushNamed(context, '/nextPage');
-                } else {
-                  _showErrorDialog(context,
-                      "Please fill in all required fields or delete unnecessary work experiences.");
-                }
-              },
-              child: const Text('Submit Work Experiences',
-                  style: TextStyle(color: Colors.white)),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

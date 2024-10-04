@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'resume_provider.dart'; // Import ResumeProvider
+import 'resume_provider.dart';
+import 'shared_layout.dart'; // Import the shared layout
 
 class EducationFormPage extends StatefulWidget {
   const EducationFormPage({Key? key}) : super(key: key);
@@ -11,6 +12,7 @@ class EducationFormPage extends StatefulWidget {
 
 class _EducationFormPageState extends State<EducationFormPage> {
   List<bool> _isExpandedList = [];
+  final _formKey = GlobalKey<FormState>(); // Form key for validation
 
   @override
   void initState() {
@@ -27,55 +29,63 @@ class _EducationFormPageState extends State<EducationFormPage> {
   Widget build(BuildContext context) {
     final resumeProvider = Provider.of<ResumeProvider>(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Education Information'),
-        backgroundColor: Colors.blueAccent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context); // Navigate back to the previous page
-          },
+    // Wrapping the entire content in SharedLayout
+    return SharedLayout(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Education Information'),
+          backgroundColor: Colors.blueAccent,
         ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: <Widget>[
-          // Build list of education fields
-          _buildEducationPanelList(resumeProvider),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              // Add a new education entry
-              setState(() {
-                resumeProvider.addEducation(Education(
-                  schoolNameController: TextEditingController(),
-                  degreeController: TextEditingController(),
-                  fieldOfStudyController: TextEditingController(),
-                  startYearController: TextEditingController(),
-                  endYearController: TextEditingController(),
-                ));
-                _isExpandedList.add(true); // Expand the new entry
-              });
-            },
-            child: const Text('Add Education'),
+        body: Form(
+          // Wrap fields in a Form
+          key: _formKey, // Assign the form key for validation
+          child: ListView(
+            padding: const EdgeInsets.all(16.0),
+            children: <Widget>[
+              // Build list of education fields
+              _buildEducationPanelList(resumeProvider),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  // Add a new education entry
+                  setState(() {
+                    resumeProvider.addEducation(Education(
+                      schoolNameController: TextEditingController(),
+                      degreeController: TextEditingController(),
+                      fieldOfStudyController: TextEditingController(),
+                      startYearController: TextEditingController(),
+                      endYearController: TextEditingController(),
+                    ));
+                    _isExpandedList.add(true); // Expand the new entry
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent, // Set the button color
+                ),
+                child: const Text('Add Education'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  // Force validation when submitting the form
+                  if (_formKey.currentState!.validate()) {
+                    if (_validateEducation(resumeProvider)) {
+                      Navigator.pushNamed(context, '/skillsForm');
+                    }
+                  } else {
+                    _showErrorDialog(
+                        context, 'Please fill in all required fields.');
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent, // Set the button color
+                ),
+                child: const Text('Submit Education',
+                    style: TextStyle(color: Colors.white)),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
-            onPressed: () {
-              if (_validateEducation(resumeProvider)) {
-                Navigator.pushNamed(
-                    context, '/skillsForm'); // Navigate to SkillsForm
-              } else {
-                _showErrorDialog(
-                    context, 'Please fill in all required fields.');
-              }
-            },
-            child: const Text('Submit Education',
-                style: TextStyle(color: Colors.white)),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -171,7 +181,9 @@ class _EducationFormPageState extends State<EducationFormPage> {
                     backgroundColor: Colors.greenAccent[400],
                   ),
                   onPressed: () {
-                    if (_validateEducationEntry(education)) {
+                    // Force validation before saving the entry
+                    if (_formKey.currentState!.validate() &&
+                        _validateEducationEntry(education)) {
                       setState(() {
                         education.isSaved = true;
                         _isExpandedList[index] = false; // Collapse the panel
@@ -229,6 +241,9 @@ class _EducationFormPageState extends State<EducationFormPage> {
                 : Colors.grey,
           ),
         ),
+        validator: (value) {
+          return _validateField(value, label);
+        },
       ),
     );
   }
@@ -251,6 +266,9 @@ class _EducationFormPageState extends State<EducationFormPage> {
           border: const OutlineInputBorder(),
         ),
         onChanged: onChanged,
+        validator: (value) {
+          return _validateField(value, label);
+        },
       ),
     );
   }
@@ -283,6 +301,9 @@ class _EducationFormPageState extends State<EducationFormPage> {
               border: const OutlineInputBorder(),
             ),
             enabled: false, // Disable manual typing
+            validator: (value) {
+              return _validateYearField(controller.text, label);
+            },
           ),
         ),
       ),
@@ -335,24 +356,40 @@ class _EducationFormPageState extends State<EducationFormPage> {
     }
   }
 
-  bool _validateEducation(ResumeProvider resumeProvider) {
-    bool allValid = true;
-    for (var education in resumeProvider.getAllEducation) {
-      if (!education.isSaved) {
-        allValid = false;
-        break;
-      }
+  String? _validateField(String? value, String label) {
+    if (value == null || value.trim().isEmpty) {
+      return '$label is required';
     }
-    return allValid;
+    if (label == 'Field of Study (Optional)' &&
+        !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+      return 'Only alphabetic characters are allowed for Field of Study';
+    }
+    if (RegExp(r'[:;]').hasMatch(value)) {
+      return '$label contains invalid characters';
+    }
+    return null;
+  }
+
+  String? _validateYearField(String value, String label) {
+    if (value.isEmpty) {
+      return '$label is required';
+    }
+    final int? year = int.tryParse(value);
+    if (year == null || year < 1950 || year > DateTime.now().year) {
+      return 'Invalid $label';
+    }
+    return null;
   }
 
   bool _validateEducationEntry(Education education) {
-    if (education.schoolNameController.text.isEmpty ||
-        education.degreeController.text.isEmpty ||
-        education.startYearController.text.isEmpty ||
-        education.endYearController.text.isEmpty) {
+    final String startYear = education.startYearController.text;
+    final String endYear = education.endYearController.text;
+
+    if (int.tryParse(startYear)! > int.tryParse(endYear)!) {
+      _showErrorDialog(context, 'End year cannot be before start year');
       return false;
     }
+
     return true;
   }
 
@@ -374,5 +411,16 @@ class _EducationFormPageState extends State<EducationFormPage> {
         );
       },
     );
+  }
+
+  bool _validateEducation(ResumeProvider resumeProvider) {
+    bool allValid = true;
+    for (var education in resumeProvider.getAllEducation) {
+      if (!education.isSaved || !_validateEducationEntry(education)) {
+        allValid = false;
+        break;
+      }
+    }
+    return allValid;
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'resume_provider.dart';
+import 'shared_layout.dart'; // Import shared layout
 
 class Summary extends StatelessWidget {
   const Summary({Key? key}) : super(key: key);
@@ -9,31 +10,33 @@ class Summary extends StatelessWidget {
   Widget build(BuildContext context) {
     final resumeProvider = Provider.of<ResumeProvider>(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Summary'),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle('Personal Information'),
-            _buildPersonalInfoSection(resumeProvider),
-            const SizedBox(height: 20),
-            _buildSectionTitle('Work Experience'),
-            _buildWorkExperienceSection(resumeProvider),
-            const SizedBox(height: 20),
-            _buildSectionTitle('Education'),
-            _buildEducationSection(resumeProvider),
-            const SizedBox(height: 20),
-            _buildSectionTitle('Skills'),
-            _buildSkillsSection(resumeProvider),
-            const SizedBox(height: 20),
-            _buildSectionTitle('Languages'),
-            _buildLanguagesSection(resumeProvider),
-          ],
+    return SharedLayout(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Summary'),
+          backgroundColor: Colors.blueAccent,
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionTitle('Personal Information'),
+              _buildPersonalInfoSection(resumeProvider),
+              const SizedBox(height: 20),
+              _buildSectionTitle('Work Experience'),
+              _buildWorkExperienceSection(resumeProvider),
+              const SizedBox(height: 20),
+              _buildSectionTitle('Education'),
+              _buildEducationSection(resumeProvider),
+              const SizedBox(height: 20),
+              _buildSectionTitle('Skills'),
+              _buildSkillsSection(resumeProvider),
+              const SizedBox(height: 20),
+              _buildSectionTitle('Languages'),
+              _buildLanguagesSection(resumeProvider),
+            ],
+          ),
         ),
       ),
     );

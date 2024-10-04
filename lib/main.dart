@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/', // Start from Personal Info
       routes: {
         '/': (context) => HomePage(),
-        '/personalInfo': (context) => const PersonalInfoFormPage(),
+        '/personalInfo': (context) => PersonalInfoFormPage(),
         '/educationForm': (context) =>
             const EducationFormPage(), // Education form
         '/skillsForm': (context) => const SkillsFormPage(), // Skills form

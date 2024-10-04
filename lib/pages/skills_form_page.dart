@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'resume_provider.dart'; // Ensure this import is correct
+import 'shared_layout.dart'; // Import the shared layout
 
 class SkillsFormPage extends StatefulWidget {
   const SkillsFormPage({Key? key}) : super(key: key);
@@ -32,41 +33,44 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
   Widget build(BuildContext context) {
     final resumeProvider = Provider.of<ResumeProvider>(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Skills Information'),
-        backgroundColor: Colors.blueAccent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context); // Navigate back to the previous page
-          },
+    return SharedLayout(
+      // Use SharedLayout to wrap Scaffold
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Skills Information'),
+          backgroundColor: Colors.blueAccent,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context); // Navigate back to the previous page
+            },
+          ),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: <Widget>[
-            _buildSkillsPanelList(resumeProvider),
-            _buildAddSkillButton(resumeProvider),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ListView(
+            children: <Widget>[
+              _buildSkillsPanelList(resumeProvider),
+              _buildAddSkillButton(resumeProvider),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                ),
+                onPressed: () {
+                  if (_validateInputs(resumeProvider)) {
+                    Navigator.pushNamed(
+                        context, '/languagesForm'); // Navigate to LanguagesForm
+                  } else {
+                    _showErrorDialog(context,
+                        "Please fill in all required fields or delete unnecessary skills.");
+                  }
+                },
+                child: const Text('Submit Skills',
+                    style: TextStyle(color: Colors.white)),
               ),
-              onPressed: () {
-                if (_validateInputs(resumeProvider)) {
-                  Navigator.pushNamed(
-                      context, '/languagesForm'); // Navigate to LanguagesForm
-                } else {
-                  _showErrorDialog(context,
-                      "Please fill in all required fields or delete unnecessary skills.");
-                }
-              },
-              child: const Text('Submit Skills',
-                  style: TextStyle(color: Colors.white)),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
