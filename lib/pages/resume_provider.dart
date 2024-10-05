@@ -70,7 +70,9 @@ class Skill {
     required this.skillController,
     required this.proficiencyController,
     this.isSaved = false, // Default isSaved to false initially
-  });
+  }) {
+    proficiencyController.text = 'Beginner'; // Set default value to 'Beginner'
+  }
 
   void dispose() {
     skillController.dispose();
@@ -79,15 +81,18 @@ class Skill {
 }
 
 class Language {
-  TextEditingController languageNameController;
+  TextEditingController
+      languageNameController; // This is the correct field name
   TextEditingController proficiencyController;
   bool isSaved; // Add this property to track whether the entry is saved
 
   Language({
-    required this.languageNameController,
+    required this.languageNameController, // Correct name
     required this.proficiencyController,
     this.isSaved = false, // Default value is false until saved
-  });
+  }) {
+    proficiencyController.text = 'Beginner'; // Set default value to 'Beginner'
+  }
 
   void dispose() {
     languageNameController.dispose();

@@ -107,10 +107,12 @@ class PersonalInfoFormPage extends StatelessWidget {
     );
   }
 
-  // Validator to ensure no dangerous characters and basic field validation
+  // Validator to ensure no dangerous characters and basic field validation, with email validation
   String? _validateField(String? value, String fieldName,
       {bool isRequired = false}) {
     final dangerousCharacters = RegExp(r'[:;]');
+    final emailRegex =
+        RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
 
     // Check if the field is required and empty
     if (isRequired && (value == null || value.isEmpty)) {
@@ -120,6 +122,13 @@ class PersonalInfoFormPage extends StatelessWidget {
     // Check for dangerous characters
     if (dangerousCharacters.hasMatch(value ?? '')) {
       return '$fieldName contains invalid characters (: or ;)';
+    }
+
+    // Specific email validation
+    if (fieldName == 'Email Address' &&
+        value != null &&
+        !emailRegex.hasMatch(value)) {
+      return 'Please enter a valid email address';
     }
 
     return null;

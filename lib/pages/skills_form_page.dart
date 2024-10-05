@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'resume_provider.dart'; // Ensure this import is correct
+import 'resume_provider.dart';
 import 'shared_layout.dart'; // Import the shared layout
 
 class SkillsFormPage extends StatefulWidget {
@@ -34,7 +34,6 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
     final resumeProvider = Provider.of<ResumeProvider>(context);
 
     return SharedLayout(
-      // Use SharedLayout to wrap Scaffold
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Skills Information'),
@@ -141,9 +140,6 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
                         const SnackBar(
                             content: Text('Skill saved successfully!')),
                       );
-                    } else {
-                      _showErrorDialog(
-                          context, 'Please fill all required fields!');
                     }
                   },
                   child: const Text('Save Skill',
@@ -179,11 +175,9 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
       'Expert'
     ];
 
-    // Set the initial value of the dropdown to the first option ('Beginner')
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: DropdownButtonFormField<String>(
-        // Initialize the dropdown with the first value if no value is set
         value: skill.proficiencyController.text.isNotEmpty
             ? skill.proficiencyController.text
             : proficiencyLevels[0], // Default to 'Beginner'
@@ -203,22 +197,19 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
           ),
         ),
         isDense: true, // Makes the dropdown appear more compact
-        onChanged: (String? newValue) {
-          setState(() {
-            skill.proficiencyController.text = newValue!; // Update value
-          });
-        },
+
+        // Define the options for the dropdown
         items: proficiencyLevels.map<DropdownMenuItem<String>>((String value) {
           return DropdownMenuItem<String>(
             value: value,
             child: Text(value),
           );
         }).toList(),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please select a proficiency level';
-          }
-          return null;
+
+        onChanged: (String? newValue) {
+          setState(() {
+            skill.proficiencyController.text = newValue!; // Update value
+          });
         },
       ),
     );
@@ -290,23 +281,52 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
     );
   }
 
-  bool _validateInputs(ResumeProvider resumeProvider) {
-    bool allValid = true;
-    for (var skill in resumeProvider.getAllSkills) {
-      if (!skill.isSaved) {
-        allValid = false;
-        break;
-      }
+  String? _validateSkillName(String? value, String label) {
+    // Check if the field is empty
+    if (value == null || value.trim().isEmpty) {
+      return '$label is required';
     }
-    return allValid;
+
+    // Check for invalid characters (e.g., colon, semicolon, numbers)
+    if (RegExp(r'[^a-zA-Z0-9\s]').hasMatch(value)) {
+      return '$label contains invalid characters';
+    }
+
+    return null; // No validation error
   }
 
   bool _validateSkillInputs(Skill skill, BuildContext context) {
-    if (skill.skillController.text.isEmpty ||
-        skill.proficiencyController.text.isEmpty) {
+    final RegExp allowedCharsRegex = RegExp(r'^[a-zA-Z0-9\s]+$');
+
+    // First check for illegal characters
+    if (!allowedCharsRegex.hasMatch(skill.skillController.text)) {
+      _showErrorDialog(context, 'Skill name contains illegal characters.');
+      return false; // Exit early to prevent further checks
+    }
+
+    // Check if the skill name is empty
+    if (skill.skillController.text.isEmpty) {
+      _showErrorDialog(context, 'Skill name is required.');
       return false;
     }
-    return true;
+
+    return true; // If all checks pass, return true
+  }
+
+  bool _validateInputs(ResumeProvider resumeProvider) {
+    for (var skill in resumeProvider.getAllSkills) {
+      // Validate each skill and stop if an error is found
+      if (!_validateSkillInputs(skill, context)) {
+        return false; // Stop at the first invalid input
+      }
+
+      // Check if the skill has been saved, if not show an error
+      if (!skill.isSaved) {
+        _showErrorDialog(context, 'Please save the skills before submitting.');
+        return false; // Stop validation
+      }
+    }
+    return true; // All inputs are valid
   }
 
   void _showErrorDialog(BuildContext context, String message) {

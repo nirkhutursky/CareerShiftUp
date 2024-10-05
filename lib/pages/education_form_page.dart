@@ -46,24 +46,24 @@ class _EducationFormPageState extends State<EducationFormPage> {
               _buildEducationPanelList(resumeProvider),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  // Add a new education entry
-                  setState(() {
-                    resumeProvider.addEducation(Education(
-                      schoolNameController: TextEditingController(),
-                      degreeController: TextEditingController(),
-                      fieldOfStudyController: TextEditingController(),
-                      startYearController: TextEditingController(),
-                      endYearController: TextEditingController(),
-                    ));
-                    _isExpandedList.add(true); // Expand the new entry
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent, // Set the button color
-                ),
-                child: const Text('Add Education'),
-              ),
+                  onPressed: () {
+                    // Add a new education entry
+                    setState(() {
+                      resumeProvider.addEducation(Education(
+                        schoolNameController: TextEditingController(),
+                        degreeController: TextEditingController(),
+                        fieldOfStudyController: TextEditingController(),
+                        startYearController: TextEditingController(),
+                        endYearController: TextEditingController(),
+                      ));
+                      _isExpandedList.add(true); // Expand the new entry
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent, // Set the button color
+                  ),
+                  child: const Text('Add Education',
+                      style: TextStyle(color: Colors.white))),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
@@ -324,7 +324,6 @@ class _EducationFormPageState extends State<EducationFormPage> {
             child: YearPicker(
               firstDate: DateTime(1950),
               lastDate: DateTime.now(),
-              initialDate: DateTime.now(),
               selectedDate: DateTime.now(),
               onChanged: (DateTime dateTime) {
                 Navigator.pop(context, dateTime.year);

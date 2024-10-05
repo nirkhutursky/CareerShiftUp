@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
         '/languagesForm': (context) =>
             const LanguagesFormPage(), // Languages form
         '/resumeForm': (context) => const ResumeFormPage(),
-        '/nextPage': (context) =>
+        '/summaryPage': (context) =>
             const Summary(), // Final page to show all experiences
         // Other routes for additional features
         '/resumeTailoring': (context) => const ResumeTailoringPage(),

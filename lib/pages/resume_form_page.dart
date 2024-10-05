@@ -29,7 +29,6 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
     final resumeProvider = Provider.of<ResumeProvider>(context);
 
     return SharedLayout(
-      // Use SharedLayout to include the top menu
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Resume Builder - Work Experience'),
@@ -54,7 +53,7 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
                 ),
                 onPressed: () {
                   if (_validateInputs(resumeProvider)) {
-                    Navigator.pushNamed(context, '/nextPage');
+                    Navigator.pushNamed(context, '/summaryPage');
                   } else {
                     _showErrorDialog(context,
                         "Please fill in all required fields or delete unnecessary work experiences.");
@@ -113,12 +112,14 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
                   icon: Icons.work,
                   controller: experience.jobTitleController,
                   isMandatory: true,
+                  context: context, // Pass context
                 ),
                 _buildTextFormField(
                   label: 'Company Name (Required)',
                   icon: Icons.business,
                   controller: experience.companyController,
                   isMandatory: true,
+                  context: context, // Pass context
                 ),
                 Row(
                   children: [
@@ -146,6 +147,7 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
                   icon: Icons.description,
                   controller: experience.descriptionController,
                   isMandatory: false,
+                  context: context, // Pass context
                 ),
                 const SizedBox(height: 10),
                 ElevatedButton(
@@ -163,9 +165,6 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
                             content:
                                 Text('Work experience saved successfully!')),
                       );
-                    } else {
-                      _showErrorDialog(
-                          context, 'Please fill all required fields!');
                     }
                   },
                   child: const Text('Save Work Experience',
@@ -221,6 +220,7 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
     required String label,
     required IconData icon,
     required TextEditingController controller,
+    required BuildContext context, // Added BuildContext parameter
     bool isMandatory = false,
   }) {
     return Card(
@@ -255,6 +255,9 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
           filled: true,
           fillColor: Colors.blue[50],
         ),
+        validator: (value) {
+          return _validateAlphabeticField(value, label);
+        },
         onChanged: (value) {
           setState(() {}); // Update UI
         },
@@ -364,10 +367,25 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
 
   bool _validateExperienceInputs(
       WorkExperience experience, BuildContext context) {
-    if (experience.jobTitle.isEmpty ||
-        experience.companyName.isEmpty ||
-        experience.startDate.isEmpty ||
-        experience.endDate.isEmpty) {
+    // Validate the job title first
+    String? jobTitleError =
+        _validateAlphabeticField(experience.jobTitle, 'Job Title');
+    if (jobTitleError != null) {
+      _showErrorDialog(context, jobTitleError);
+      return false; // Stop further validation once an error is found
+    }
+
+    // Validate the company name next
+    String? companyNameError =
+        _validateAlphabeticField(experience.companyName, 'Company Name');
+    if (companyNameError != null) {
+      _showErrorDialog(context, companyNameError);
+      return false; // Stop further validation once an error is found
+    }
+
+    // Additional validation for start and end dates
+    if (experience.startDate.isEmpty || experience.endDate.isEmpty) {
+      _showErrorDialog(context, 'Please fill in all required fields.');
       return false;
     }
 
@@ -375,6 +393,7 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
     int? endYear = int.tryParse(experience.endDate);
 
     if (startYear == null || endYear == null) {
+      _showErrorDialog(context, 'Please enter valid years.');
       return false;
     }
 
@@ -383,7 +402,24 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
       return false;
     }
 
-    return true;
+    return true; // If all checks pass, the input is valid
+  }
+
+  String? _validateAlphabeticField(String? value, String fieldName) {
+    final alphabeticRegex =
+        RegExp(r'^[a-zA-Z\s]+$'); // Allow only alphabetic chars
+
+    // If the field is empty, return the empty field error
+    if (value == null || value.trim().isEmpty) {
+      return '$fieldName cannot be empty';
+    }
+
+    // If there are illegal characters, return the illegal characters error
+    if (!alphabeticRegex.hasMatch(value.trim())) {
+      return '$fieldName can only contain alphabetic characters';
+    }
+
+    return null; // No validation error
   }
 
   void _showErrorDialog(BuildContext context, String message) {
