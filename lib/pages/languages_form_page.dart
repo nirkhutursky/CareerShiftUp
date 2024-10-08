@@ -4,7 +4,7 @@ import 'resume_provider.dart'; // Ensure this import is correct
 import 'shared_layout.dart'; // Import the shared layout
 
 class LanguagesFormPage extends StatefulWidget {
-  const LanguagesFormPage({Key? key}) : super(key: key);
+  const LanguagesFormPage({super.key});
 
   @override
   _LanguagesFormPageState createState() => _LanguagesFormPageState();

@@ -5,6 +5,8 @@ import 'resume_provider.dart';
 class PersonalInfoFormPage extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
 
+  PersonalInfoFormPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     final resumeProvider = Provider.of<ResumeProvider>(context);
