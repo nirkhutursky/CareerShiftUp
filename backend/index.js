@@ -2,7 +2,7 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const path = require('path');
-const verifyToken = require('./authMiddleware');
+const verifyToken = require('./authWare');
 require('dotenv').config(); // Load environment variables
 
 // Initialize Firebase Admin SDK using environment variable for the service account key
@@ -35,6 +35,11 @@ app.use(express.json());
 
 // Route to add a new resume
 // Route to add a new resume
+
+// Serve the Google Login Test HTML file
+app.get('/google-login-test', (req, res) => {
+  res.sendFile(path.join(__dirname, 'auth_test.html'));
+});
 
 // Route to add a new resume (only authenticated users can add a resume)
 app.post('/add-resume', verifyToken, async (req, res) => {
