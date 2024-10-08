@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'shared_layout.dart'; // Import the shared layout
 
 class PortfolioBuilderPage extends StatelessWidget {
-  const PortfolioBuilderPage({Key? key}) : super(key: key);
+  const PortfolioBuilderPage({super.key});
 
   @override
   Widget build(BuildContext context) {

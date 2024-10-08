@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'shared_layout.dart'; // Import the shared layout
 
 class ResumeGeneratorPage extends StatelessWidget {
-  const ResumeGeneratorPage({Key? key}) : super(key: key);
+  const ResumeGeneratorPage({super.key});
 
   @override
   Widget build(BuildContext context) {

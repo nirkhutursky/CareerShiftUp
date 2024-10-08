@@ -4,7 +4,7 @@ import 'resume_provider.dart';
 import 'shared_layout.dart'; // Import shared layout
 
 class Summary extends StatelessWidget {
-  const Summary({Key? key}) : super(key: key);
+  const Summary({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -109,16 +109,16 @@ class ResumeProvider with ChangeNotifier {
   TextEditingController portfolioController = TextEditingController();
 
   // Work Experiences
-  List<WorkExperience> _workExperiences = [];
+  final List<WorkExperience> _workExperiences = [];
 
   // Education
-  List<Education> _educationList = [];
+  final List<Education> _educationList = [];
 
   // Skills
-  List<Skill> _skillsList = [];
+  final List<Skill> _skillsList = [];
 
   // Languages
-  List<Language> _languagesList = [];
+  final List<Language> _languagesList = [];
 
   // Methods to manage work experiences
   void addExperience(WorkExperience experience) {

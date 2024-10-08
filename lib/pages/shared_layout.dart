@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class SharedLayout extends StatefulWidget {
   final Widget child;
 
-  const SharedLayout({Key? key, required this.child}) : super(key: key);
+  const SharedLayout({super.key, required this.child});
 
   @override
   _SharedLayoutState createState() => _SharedLayoutState();

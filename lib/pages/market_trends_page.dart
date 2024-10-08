@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'shared_layout.dart'; // Import the shared layout
 
 class MarketTrendsPage extends StatelessWidget {
-  const MarketTrendsPage({Key? key}) : super(key: key);
+  const MarketTrendsPage({super.key});
 
   @override
   Widget build(BuildContext context) {

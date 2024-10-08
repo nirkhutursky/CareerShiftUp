@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'shared_layout.dart'; // Import SharedLayout
 
 class ApplicationTrackerPage extends StatelessWidget {
-  const ApplicationTrackerPage({Key? key}) : super(key: key);
+  const ApplicationTrackerPage({super.key});
 
   @override
   Widget build(BuildContext context) {
