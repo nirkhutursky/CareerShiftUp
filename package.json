@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "cookie": "^0.7.2",
+    "express": "^4.21.0"
+  }
+}
