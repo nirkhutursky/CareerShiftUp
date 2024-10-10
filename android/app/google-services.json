@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "749558676091",
+    "project_id": "careershiftup",
+    "storage_bucket": "careershiftup.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:749558676091:android:ea0b8bc1ba685d055040de",
+        "android_client_info": {
+          "package_name": "com.example.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "749558676091-uvlmf2f0vkrjmqhjmv46tk46ggbuol4c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-RHiivfdsmT0ugjqZk3RRLiKbrEnkbXM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "749558676091-uvlmf2f0vkrjmqhjmv46tk46ggbuol4c.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "749558676091-a87vldovggf2l43j90e7p4ad83mt74v6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.jobSeeker"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
