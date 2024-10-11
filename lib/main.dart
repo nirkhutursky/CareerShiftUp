@@ -10,7 +10,7 @@ import 'package:job_seeker/pages/personal_info_form_page.dart';
 import 'package:job_seeker/pages/education_form_page.dart';
 import 'package:job_seeker/pages/skills_form_page.dart';
 import 'package:job_seeker/pages/languages_form_page.dart';
-import 'package:job_seeker/pages/auth_screen.dart'; // Import the AuthScreen
+import 'package:job_seeker/pages/auth_screen.dart'; // Correctly import AuthScreen
 import 'home_page.dart';
 import 'package:job_seeker/pages/resume_tailoring_page.dart';
 import 'package:job_seeker/pages/resume_generator_page.dart';
@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: AuthWrapper(),
+        home: const AuthWrapper(),
         routes: {
           '/personalInfo': (context) => PersonalInfoFormPage(),
           '/educationForm': (context) => const EducationFormPage(),
@@ -69,6 +69,8 @@ class MyApp extends StatelessWidget {
 }
 
 class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
@@ -81,9 +83,11 @@ class AuthWrapper extends StatelessWidget {
             ),
           );
         } else if (snapshot.hasData) {
-          return const HomePage(); // User is signed in
+          // User is signed in
+          return const HomePage();
         } else {
-          return const AuthScreen(); // User is not signed in
+          // User is not signed in
+          return const AuthScreen();
         }
       },
     );

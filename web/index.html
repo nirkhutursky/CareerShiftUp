@@ -1,29 +1,67 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="description" content="A new Flutter project">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Career Shift Up</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Career Shift Up</title>
+    <link rel="manifest" href="manifest.json">
 
-  <!-- Firebase setup -->
-  <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-auth.js"></script>
+    <!-- Add your Google Sign-In Client ID -->
+    <meta name="google-signin-client_id" content="749558676091-uvlmf2f0vkrjmqhjmv46tk46ggbuol4c.apps.googleusercontent.com">
 
-  <!-- Firebase configuration -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "YOUR_FIREBASE_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID",
-    };
-    firebase.initializeApp(firebaseConfig);
-  </script>
+    <!-- Include Firebase using the correct CDN URLs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script> <!-- Google Identity Services -->
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDWw5JHkuX3izQqRQC6VIxMUPiD2dNDiC8",
+            authDomain: "careershiftup.firebaseapp.com",
+            projectId: "careershiftup",
+            storageBucket: "careershiftup.appspot.com",
+            messagingSenderId: "749558676091",
+            appId: "1:749558676091:web:bdecf3d5bd31cde55040de",
+            measurementId: "G-VYGPTB3LX0"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        function handleCredentialResponse(response) {
+            const idToken = response.credential;
+
+            // Send the ID token to your backend server
+            fetch('http://localhost:3000/receive-token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token: idToken }),
+            }).then(response => response.json())
+                .then(data => console.log("Response from backend:", data))
+                .catch(error => console.error('Error sending token to backend:', error));
+        }
+    </script>
 </head>
+
 <body>
-  <script src="main.dart.js" type="application/javascript"></script>
+    <div id="g_id_onload"
+        data-client_id="749558676091-uvlmf2f0vkrjmqhjmv46tk46ggbuol4c.apps.googleusercontent.com"
+        data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin" data-type="standard"></div>
+
+    <script src="flutter.js" defer></script>
+    <script>
+        window.addEventListener('load', function (ev) {
+            window.flutterWebRenderer = 'canvaskit'; // Use CanvasKit for better performance
+        });
+    </script>
+    <script src="main.dart.js" type="application/javascript"></script>
 </body>
+
 </html>

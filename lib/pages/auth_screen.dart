@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -13,36 +11,35 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn =
+      GoogleSignIn(scopes: []); // Empty scopes to avoid People API
 
   Future<void> _signInWithGoogle() async {
     try {
-      if (kIsWeb) {
-        // Web Google sign-in
-        GoogleAuthProvider googleProvider = GoogleAuthProvider();
-
-        await _auth.signInWithPopup(googleProvider);
-      } else {
-        // Mobile Google sign-in
-        final GoogleSignIn googleSignIn = GoogleSignIn();
-        final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-        if (googleUser == null) {
-          // User canceled the sign-in
-          return;
-        }
-
-        final GoogleSignInAuthentication googleAuth =
-            await googleUser.authentication;
-
-        final AuthCredential credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-
-        await _auth.signInWithCredential(credential);
+      // Trigger the Google Authentication process
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        // User cancelled the sign-in
+        return;
       }
 
+      // Get the authentication details from Google
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // Create a new credential using Google Authentication
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in to Firebase using the Google credential
+      await _auth.signInWithCredential(credential);
+
+      // Successfully signed in
       print("User signed in: ${_auth.currentUser?.displayName}");
     } catch (e) {
+      // Handle sign-in error
       print("Error signing in with Google: $e");
     }
   }
