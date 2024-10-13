@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -12,7 +13,9 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn =
-      GoogleSignIn(scopes: []); // Empty scopes to avoid People API
+      GoogleSignIn(); // Keep it simple with no scopes
+  final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance; // Firestore reference
 
   Future<void> _signInWithGoogle() async {
     try {
@@ -38,9 +41,37 @@ class _AuthScreenState extends State<AuthScreen> {
 
       // Successfully signed in
       print("User signed in: ${_auth.currentUser?.displayName}");
+
+      // Add data to Firestore after login
+      await _addDataToFirestore();
     } catch (e) {
       // Handle sign-in error
       print("Error signing in with Google: $e");
+    }
+  }
+
+  Future<void> _addDataToFirestore() async {
+    try {
+      // Create a reference to a test collection
+      final docRef =
+          _firestore.collection('testData').doc(_auth.currentUser?.uid);
+
+      // Set some data in Firestore
+      await docRef.set({
+        'name': _auth.currentUser?.displayName ?? 'Unknown',
+        'email': _auth.currentUser?.email ?? 'No Email Provided',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      // Retrieve the data back from Firestore
+      final snapshot = await docRef.get();
+      if (snapshot.exists) {
+        print("Data retrieved from Firestore: ${snapshot.data()}");
+      } else {
+        print("No data found for the document");
+      }
+    } catch (e) {
+      print("Error handling Firestore: $e");
     }
   }
 

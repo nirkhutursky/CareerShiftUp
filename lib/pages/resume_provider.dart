@@ -19,6 +19,25 @@ class WorkExperience {
     this.isSaved = false,
   });
 
+  // Getters for UI compatibility
+  String get jobTitle => jobTitleController.text;
+  String get companyName => companyController.text;
+  String get startDate => startDateController.text;
+  String get endDate => endDateController.text;
+  String get description => descriptionController.text;
+
+  // Convert to Map for serialization purposes
+  Map<String, String> toMap() {
+    return {
+      'jobTitle': jobTitleController.text,
+      'companyName': companyController.text,
+      'startDate': startDateController.text,
+      'endDate': endDateController.text,
+      'description': descriptionController.text,
+    };
+  }
+
+  // Dispose controllers to avoid memory leaks
   void dispose() {
     jobTitleController.dispose();
     companyController.dispose();
@@ -26,13 +45,6 @@ class WorkExperience {
     endDateController.dispose();
     descriptionController.dispose();
   }
-
-  // Getters for convenience
-  String get jobTitle => jobTitleController.text;
-  String get companyName => companyController.text;
-  String get startDate => startDateController.text;
-  String get endDate => endDateController.text;
-  String get description => descriptionController.text;
 }
 
 class Education {
@@ -41,7 +53,7 @@ class Education {
   TextEditingController fieldOfStudyController;
   TextEditingController startYearController;
   TextEditingController endYearController;
-  bool isSaved; // Add isSaved to track the save state of the education entry
+  bool isSaved;
 
   Education({
     required this.schoolNameController,
@@ -49,7 +61,7 @@ class Education {
     required this.fieldOfStudyController,
     required this.startYearController,
     required this.endYearController,
-    this.isSaved = false, // Default value is false
+    this.isSaved = false,
   });
 
   void dispose() {
@@ -59,44 +71,70 @@ class Education {
     startYearController.dispose();
     endYearController.dispose();
   }
+
+  // Convert to Map
+  Map<String, String> toMap() {
+    return {
+      'schoolName': schoolNameController.text,
+      'degree': degreeController.text,
+      'fieldOfStudy': fieldOfStudyController.text,
+      'startYear': startYearController.text,
+      'endYear': endYearController.text,
+    };
+  }
 }
 
 class Skill {
   TextEditingController skillController;
   TextEditingController proficiencyController;
-  bool isSaved; // Add isSaved field to track if the skill has been saved
+  bool isSaved;
 
   Skill({
     required this.skillController,
     required this.proficiencyController,
-    this.isSaved = false, // Default isSaved to false initially
+    this.isSaved = false,
   }) {
-    proficiencyController.text = 'Beginner'; // Set default value to 'Beginner'
+    proficiencyController.text = 'Beginner';
   }
 
   void dispose() {
     skillController.dispose();
     proficiencyController.dispose();
   }
+
+  // Convert to Map
+  Map<String, String> toMap() {
+    return {
+      'skill': skillController.text,
+      'proficiency': proficiencyController.text,
+    };
+  }
 }
 
 class Language {
-  TextEditingController
-      languageNameController; // This is the correct field name
+  TextEditingController languageNameController;
   TextEditingController proficiencyController;
-  bool isSaved; // Add this property to track whether the entry is saved
+  bool isSaved;
 
   Language({
-    required this.languageNameController, // Correct name
+    required this.languageNameController,
     required this.proficiencyController,
-    this.isSaved = false, // Default value is false until saved
+    this.isSaved = false,
   }) {
-    proficiencyController.text = 'Beginner'; // Set default value to 'Beginner'
+    proficiencyController.text = 'Beginner';
   }
 
   void dispose() {
     languageNameController.dispose();
     proficiencyController.dispose();
+  }
+
+  // Convert to Map
+  Map<String, String> toMap() {
+    return {
+      'language': languageNameController.text,
+      'proficiency': proficiencyController.text,
+    };
   }
 }
 
@@ -119,6 +157,87 @@ class ResumeProvider with ChangeNotifier {
 
   // Languages
   final List<Language> _languagesList = [];
+
+  // Method to convert all resume data into a map
+  Map<String, dynamic> toMap() {
+    return {
+      'fullName': fullNameController.text,
+      'email': emailController.text,
+      'phone': phoneController.text,
+      'linkedIn': linkedInController.text,
+      'portfolio': portfolioController.text,
+      'workExperiences':
+          _workExperiences.map((experience) => experience.toMap()).toList(),
+      'education':
+          _educationList.map((education) => education.toMap()).toList(),
+      'skills': _skillsList.map((skill) => skill.toMap()).toList(),
+      'languages': _languagesList.map((language) => language.toMap()).toList(),
+    };
+  }
+
+  // Methods to set resume data from a fetched map
+  void setResumeData(Map<String, dynamic> resumeData) {
+    clearAllData(); // Clear existing data before setting new data
+
+    // Set personal info
+    fullNameController.text = resumeData['fullName'] ?? '';
+    emailController.text = resumeData['email'] ?? '';
+    phoneController.text = resumeData['phone'] ?? '';
+    linkedInController.text = resumeData['linkedIn'] ?? '';
+    portfolioController.text = resumeData['portfolio'] ?? '';
+
+    // Set work experiences
+    for (var experienceData in resumeData['workExperiences'] ?? []) {
+      _workExperiences.add(WorkExperience(
+        jobTitleController:
+            TextEditingController(text: experienceData['jobTitle']),
+        companyController:
+            TextEditingController(text: experienceData['companyName']),
+        startDateController:
+            TextEditingController(text: experienceData['startDate']),
+        endDateController:
+            TextEditingController(text: experienceData['endDate']),
+        descriptionController:
+            TextEditingController(text: experienceData['description']),
+      ));
+    }
+
+    // Set education
+    for (var educationData in resumeData['education'] ?? []) {
+      _educationList.add(Education(
+        schoolNameController:
+            TextEditingController(text: educationData['schoolName']),
+        degreeController: TextEditingController(text: educationData['degree']),
+        fieldOfStudyController:
+            TextEditingController(text: educationData['fieldOfStudy']),
+        startYearController:
+            TextEditingController(text: educationData['startYear']),
+        endYearController:
+            TextEditingController(text: educationData['endYear']),
+      ));
+    }
+
+    // Set skills
+    for (var skillData in resumeData['skills'] ?? []) {
+      _skillsList.add(Skill(
+        skillController: TextEditingController(text: skillData['skill']),
+        proficiencyController:
+            TextEditingController(text: skillData['proficiency']),
+      ));
+    }
+
+    // Set languages
+    for (var languageData in resumeData['languages'] ?? []) {
+      _languagesList.add(Language(
+        languageNameController:
+            TextEditingController(text: languageData['language']),
+        proficiencyController:
+            TextEditingController(text: languageData['proficiency']),
+      ));
+    }
+
+    notifyListeners(); // Notify listeners to update UI
+  }
 
   // Methods to manage work experiences
   void addExperience(WorkExperience experience) {
@@ -183,6 +302,37 @@ class ResumeProvider with ChangeNotifier {
   }
 
   List<Language> get getAllLanguages => _languagesList;
+
+  // Method to clear all data
+  void clearAllData() {
+    fullNameController.clear();
+    emailController.clear();
+    phoneController.clear();
+    linkedInController.clear();
+    portfolioController.clear();
+
+    for (var experience in _workExperiences) {
+      experience.dispose();
+    }
+    _workExperiences.clear();
+
+    for (var education in _educationList) {
+      education.dispose();
+    }
+    _educationList.clear();
+
+    for (var skill in _skillsList) {
+      skill.dispose();
+    }
+    _skillsList.clear();
+
+    for (var language in _languagesList) {
+      language.dispose();
+    }
+    _languagesList.clear();
+
+    notifyListeners();
+  }
 
   // Dispose method to clean up controllers
   void disposeControllers() {

@@ -17,11 +17,18 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
   void initState() {
     super.initState();
     final resumeProvider = Provider.of<ResumeProvider>(context, listen: false);
-    _isExpandedList = List<bool>.filled(
-      resumeProvider.getAllExperiences.length,
-      true,
-      growable: true,
-    );
+    _syncExpansionState(resumeProvider);
+  }
+
+  // Sync _isExpandedList with the number of work experiences in the provider
+  void _syncExpansionState(ResumeProvider resumeProvider) {
+    setState(() {
+      _isExpandedList = List<bool>.filled(
+        resumeProvider.getAllExperiences.length,
+        true,
+        growable: true,
+      );
+    });
   }
 
   @override
@@ -51,14 +58,12 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueAccent,
                 ),
-                onPressed: () {
-                  if (_validateInputs(resumeProvider)) {
-                    Navigator.pushNamed(context, '/summaryPage');
-                  } else {
-                    _showErrorDialog(context,
-                        "Please fill in all required fields or delete unnecessary work experiences.");
-                  }
-                },
+                onPressed: resumeProvider.getAllExperiences
+                        .any((experience) => !experience.isSaved)
+                    ? null
+                    : () {
+                        Navigator.pushNamed(context, '/summaryPage');
+                      },
                 child: const Text('Submit Work Experiences',
                     style: TextStyle(color: Colors.white)),
               ),
@@ -112,14 +117,14 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
                   icon: Icons.work,
                   controller: experience.jobTitleController,
                   isMandatory: true,
-                  context: context, // Pass context
+                  context: context,
                 ),
                 _buildTextFormField(
                   label: 'Company Name (Required)',
                   icon: Icons.business,
                   controller: experience.companyController,
                   isMandatory: true,
-                  context: context, // Pass context
+                  context: context,
                 ),
                 Row(
                   children: [
@@ -147,7 +152,7 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
                   icon: Icons.description,
                   controller: experience.descriptionController,
                   isMandatory: false,
-                  context: context, // Pass context
+                  context: context,
                 ),
                 const SizedBox(height: 10),
                 ElevatedButton(
@@ -220,7 +225,7 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
     required String label,
     required IconData icon,
     required TextEditingController controller,
-    required BuildContext context, // Added BuildContext parameter
+    required BuildContext context,
     bool isMandatory = false,
   }) {
     return Card(

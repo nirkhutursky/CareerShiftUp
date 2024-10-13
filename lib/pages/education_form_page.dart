@@ -25,6 +25,11 @@ class _EducationFormPageState extends State<EducationFormPage> {
     );
   }
 
+  bool _allEducationEntriesSaved(ResumeProvider resumeProvider) {
+    return resumeProvider.getAllEducation
+        .every((education) => education.isSaved);
+  }
+
   @override
   Widget build(BuildContext context) {
     final resumeProvider = Provider.of<ResumeProvider>(context);
@@ -46,39 +51,36 @@ class _EducationFormPageState extends State<EducationFormPage> {
               _buildEducationPanelList(resumeProvider),
               const SizedBox(height: 20),
               ElevatedButton(
-                  onPressed: () {
-                    // Add a new education entry
-                    setState(() {
-                      resumeProvider.addEducation(Education(
-                        schoolNameController: TextEditingController(),
-                        degreeController: TextEditingController(),
-                        fieldOfStudyController: TextEditingController(),
-                        startYearController: TextEditingController(),
-                        endYearController: TextEditingController(),
-                      ));
-                      _isExpandedList.add(true); // Expand the new entry
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent, // Set the button color
-                  ),
-                  child: const Text('Add Education',
-                      style: TextStyle(color: Colors.white))),
-              const SizedBox(height: 20),
-              ElevatedButton(
                 onPressed: () {
-                  // Force validation when submitting the form
-                  if (_formKey.currentState!.validate()) {
-                    if (_validateEducation(resumeProvider)) {
-                      Navigator.pushNamed(context, '/skillsForm');
-                    }
-                  } else {
-                    _showErrorDialog(
-                        context, 'Please fill in all required fields.');
-                  }
+                  // Add a new education entry
+                  setState(() {
+                    resumeProvider.addEducation(Education(
+                      schoolNameController: TextEditingController(),
+                      degreeController: TextEditingController(),
+                      fieldOfStudyController: TextEditingController(),
+                      startYearController: TextEditingController(),
+                      endYearController: TextEditingController(),
+                    ));
+                    _isExpandedList.add(true); // Expand the new entry
+                  });
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueAccent, // Set the button color
+                ),
+                child: const Text('Add Education',
+                    style: TextStyle(color: Colors.white)),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _allEducationEntriesSaved(resumeProvider)
+                    ? () {
+                        Navigator.pushNamed(context, '/skillsForm');
+                      }
+                    : null, // Disable button if not all entries are saved
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _allEducationEntriesSaved(resumeProvider)
+                      ? Colors.blueAccent
+                      : Colors.grey, // Set the button color
                 ),
                 child: const Text('Submit Education',
                     style: TextStyle(color: Colors.white)),
@@ -242,7 +244,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
           ),
         ),
         validator: (value) {
-          return _validateField(value, label);
+          return _validateField(value, label, isMandatory);
         },
       ),
     );
@@ -267,7 +269,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
         ),
         onChanged: onChanged,
         validator: (value) {
-          return _validateField(value, label);
+          return _validateField(value, label, true);
         },
       ),
     );
@@ -355,17 +357,22 @@ class _EducationFormPageState extends State<EducationFormPage> {
     }
   }
 
-  String? _validateField(String? value, String label) {
-    if (value == null || value.trim().isEmpty) {
+  String? _validateField(String? value, String label, bool isMandatory) {
+    if (isMandatory && (value == null || value.trim().isEmpty)) {
       return '$label is required';
     }
+
     if (label == 'Field of Study (Optional)' &&
+        value != null &&
+        value.isNotEmpty &&
         !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
       return 'Only alphabetic characters are allowed for Field of Study';
     }
-    if (RegExp(r'[:;]').hasMatch(value)) {
+
+    if (value != null && RegExp(r'[:;]').hasMatch(value)) {
       return '$label contains invalid characters';
     }
+
     return null;
   }
 

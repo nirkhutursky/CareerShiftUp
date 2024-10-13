@@ -2,9 +2,109 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'resume_provider.dart';
 import 'shared_layout.dart'; // Import shared layout
+import 'api_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Summary extends StatelessWidget {
   const Summary({super.key});
+
+  Future<void> _addResume(BuildContext context) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser!;
+      final idToken = await user.getIdToken();
+
+      if (idToken == null) {
+        throw Exception('Failed to retrieve ID token.');
+      }
+
+      print("ID Token Retrieved: $idToken");
+
+      // Use the ApiService to fetch existing resumes and delete them
+      final resumes = await ApiService.getResumes(idToken);
+      if (resumes.isNotEmpty) {
+        // Delete the existing resume (assume one resume per user)
+        await ApiService.deleteResume(idToken, resumes[0]['id']);
+      }
+
+      // Prepare resume data from ResumeProvider
+      final resumeProvider =
+          Provider.of<ResumeProvider>(context, listen: false);
+      final resumeData = {
+        'fullName': resumeProvider.fullNameController.text,
+        'email': resumeProvider.emailController.text,
+        'phone': resumeProvider.phoneController.text,
+        'linkedIn': resumeProvider.linkedInController.text,
+        'portfolio': resumeProvider.portfolioController.text,
+        'workExperiences': resumeProvider.getAllExperiences.map((experience) {
+          return {
+            'jobTitle': experience.jobTitle,
+            'companyName': experience.companyName,
+            'startDate': experience.startDate,
+            'endDate': experience.endDate,
+          };
+        }).toList(),
+        'education': resumeProvider.getAllEducation.map((education) {
+          return {
+            'schoolName': education.schoolNameController.text,
+            'degree': education.degreeController.text,
+            'startYear': education.startYearController.text,
+            'endYear': education.endYearController.text,
+          };
+        }).toList(),
+        'skills': resumeProvider.getAllSkills.map((skill) {
+          return {
+            'skill': skill.skillController.text,
+            'proficiency': skill.proficiencyController.text,
+          };
+        }).toList(),
+        'languages': resumeProvider.getAllLanguages.map((language) {
+          return {
+            'language': language.languageNameController.text,
+            'proficiency': language.proficiencyController.text,
+          };
+        }).toList(),
+      };
+
+      // Use the ApiService to add a new resume
+      final response = await ApiService.addResume(idToken, resumeData);
+
+      print('Resume added successfully: $response');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Resume added successfully!')),
+      );
+    } catch (e) {
+      print('Error adding resume: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error adding resume: $e')),
+      );
+    }
+  }
+
+  Future<void> _fetchResumes(BuildContext context) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser!;
+      final idToken = await user.getIdToken();
+
+      if (idToken == null) {
+        throw Exception('Failed to retrieve ID token.');
+      }
+
+      print("ID Token Retrieved: $idToken");
+
+      // Use the ApiService to fetch resumes
+      final resumes = await ApiService.getResumes(idToken);
+      print('Fetched resumes successfully: $resumes');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Fetched ${resumes.length} resumes successfully!')),
+      );
+    } catch (e) {
+      print('Error fetching resumes: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching resumes: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,27 +116,49 @@ class Summary extends StatelessWidget {
           title: const Text('Summary'),
           backgroundColor: Colors.blueAccent,
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionTitle('Personal Information'),
-              _buildPersonalInfoSection(resumeProvider),
-              const SizedBox(height: 20),
-              _buildSectionTitle('Work Experience'),
-              _buildWorkExperienceSection(resumeProvider),
-              const SizedBox(height: 20),
-              _buildSectionTitle('Education'),
-              _buildEducationSection(resumeProvider),
-              const SizedBox(height: 20),
-              _buildSectionTitle('Skills'),
-              _buildSkillsSection(resumeProvider),
-              const SizedBox(height: 20),
-              _buildSectionTitle('Languages'),
-              _buildLanguagesSection(resumeProvider),
-            ],
-          ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _addResume(context),
+                    child: const Text('Add Resume'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _fetchResumes(context),
+                    child: const Text('Fetch Resumes'),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionTitle('Personal Information'),
+                    _buildPersonalInfoSection(resumeProvider),
+                    const SizedBox(height: 20),
+                    _buildSectionTitle('Work Experience'),
+                    _buildWorkExperienceSection(resumeProvider),
+                    const SizedBox(height: 20),
+                    _buildSectionTitle('Education'),
+                    _buildEducationSection(resumeProvider),
+                    const SizedBox(height: 20),
+                    _buildSectionTitle('Skills'),
+                    _buildSkillsSection(resumeProvider),
+                    const SizedBox(height: 20),
+                    _buildSectionTitle('Languages'),
+                    _buildLanguagesSection(resumeProvider),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

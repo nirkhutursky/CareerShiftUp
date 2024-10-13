@@ -5,6 +5,7 @@ const path = require('path');
 const verifyToken = require('./authWare');
 const rateLimit = require('express-rate-limit');
 const winston = require('winston');
+const cors = require('cors'); // Import CORS middleware
 require('dotenv').config(); // Load environment variables
 
 // Initialize Firebase Admin SDK using environment variable for the service account key
@@ -30,6 +31,9 @@ const db = admin.firestore();
 // Set up Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Apply CORS middleware to allow cross-origin requests
+app.use(cors());
 
 // Middleware to parse JSON requests
 app.use(express.json());

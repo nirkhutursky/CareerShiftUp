@@ -24,9 +24,8 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
     );
   }
 
-  @override
-  void dispose() {
-    super.dispose();
+  bool _allSkillsSaved(ResumeProvider resumeProvider) {
+    return resumeProvider.getAllSkills.every((skill) => skill.isSaved);
   }
 
   @override
@@ -54,17 +53,16 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
+                  backgroundColor: _allSkillsSaved(resumeProvider)
+                      ? Colors.blueAccent
+                      : Colors.grey, // Set the button color
                 ),
-                onPressed: () {
-                  if (_validateInputs(resumeProvider)) {
-                    Navigator.pushNamed(
-                        context, '/languagesForm'); // Navigate to LanguagesForm
-                  } else {
-                    _showErrorDialog(context,
-                        "Please fill in all required fields or delete unnecessary skills.");
-                  }
-                },
+                onPressed: _allSkillsSaved(resumeProvider)
+                    ? () {
+                        Navigator.pushNamed(context,
+                            '/languagesForm'); // Navigate to LanguagesForm
+                      }
+                    : null, // Disable button if not all entries are saved
                 child: const Text('Submit Skills',
                     style: TextStyle(color: Colors.white)),
               ),
@@ -101,7 +99,6 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
             return ListTile(
               title: Row(
                 children: [
-                  // Skill Name (Flexible)
                   Expanded(
                     child: _buildTextFormField(
                       label: 'Skill Name (Required)',
@@ -111,8 +108,6 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
                     ),
                   ),
                   const SizedBox(width: 10),
-
-                  // Proficiency Dropdown (Fixed Width)
                   SizedBox(
                     width: 150, // Fixed width for the dropdown
                     child: _buildProficiencyDropdown(skill),
@@ -148,7 +143,8 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
                 const SizedBox(height: 10),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent),
+                    backgroundColor: Colors.redAccent,
+                  ),
                   onPressed: () {
                     setState(() {
                       resumeProvider.removeSkill(index);
@@ -167,7 +163,6 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
   }
 
   Widget _buildProficiencyDropdown(Skill skill) {
-    // Proficiency levels list
     const List<String> proficiencyLevels = [
       'Beginner',
       'Intermediate',
@@ -185,10 +180,10 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
           border: const OutlineInputBorder(),
           filled: true,
           fillColor: Colors.blue[50],
-          contentPadding: const EdgeInsets.symmetric(
-              vertical: 14.0, horizontal: 10.0), // Align with TextField height
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 14.0, horizontal: 10.0),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0), // Rounded corners
+            borderRadius: BorderRadius.circular(10.0),
             borderSide: const BorderSide(color: Colors.transparent),
           ),
           focusedBorder: OutlineInputBorder(
@@ -196,19 +191,16 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
             borderSide: const BorderSide(color: Colors.blueAccent),
           ),
         ),
-        isDense: true, // Makes the dropdown appear more compact
-
-        // Define the options for the dropdown
+        isDense: true,
         items: proficiencyLevels.map<DropdownMenuItem<String>>((String value) {
           return DropdownMenuItem<String>(
             value: value,
             child: Text(value),
           );
         }).toList(),
-
         onChanged: (String? newValue) {
           setState(() {
-            skill.proficiencyController.text = newValue!; // Update value
+            skill.proficiencyController.text = newValue!;
           });
         },
       ),
@@ -275,58 +267,26 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
           fillColor: Colors.blue[50],
         ),
         onChanged: (value) {
-          setState(() {}); // Update UI
+          setState(() {});
         },
       ),
     );
   }
 
-  String? _validateSkillName(String? value, String label) {
-    // Check if the field is empty
-    if (value == null || value.trim().isEmpty) {
-      return '$label is required';
-    }
-
-    // Check for invalid characters (e.g., colon, semicolon, numbers)
-    if (RegExp(r'[^a-zA-Z0-9\s]').hasMatch(value)) {
-      return '$label contains invalid characters';
-    }
-
-    return null; // No validation error
-  }
-
   bool _validateSkillInputs(Skill skill, BuildContext context) {
     final RegExp allowedCharsRegex = RegExp(r'^[a-zA-Z0-9\s]+$');
 
-    // First check for illegal characters
     if (!allowedCharsRegex.hasMatch(skill.skillController.text)) {
       _showErrorDialog(context, 'Skill name contains illegal characters.');
-      return false; // Exit early to prevent further checks
+      return false;
     }
 
-    // Check if the skill name is empty
     if (skill.skillController.text.isEmpty) {
       _showErrorDialog(context, 'Skill name is required.');
       return false;
     }
 
-    return true; // If all checks pass, return true
-  }
-
-  bool _validateInputs(ResumeProvider resumeProvider) {
-    for (var skill in resumeProvider.getAllSkills) {
-      // Validate each skill and stop if an error is found
-      if (!_validateSkillInputs(skill, context)) {
-        return false; // Stop at the first invalid input
-      }
-
-      // Check if the skill has been saved, if not show an error
-      if (!skill.isSaved) {
-        _showErrorDialog(context, 'Please save the skills before submitting.');
-        return false; // Stop validation
-      }
-    }
-    return true; // All inputs are valid
+    return true;
   }
 
   void _showErrorDialog(BuildContext context, String message) {
@@ -339,7 +299,7 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
               child: const Text('OK'),
             ),
