@@ -4,25 +4,14 @@ import 'resume_provider.dart';
 import 'shared_layout.dart'; // Import the shared layout
 
 class SkillsFormPage extends StatefulWidget {
-  const SkillsFormPage({super.key});
+  const SkillsFormPage({Key? key}) : super(key: key);
 
   @override
   _SkillsFormPageState createState() => _SkillsFormPageState();
 }
 
 class _SkillsFormPageState extends State<SkillsFormPage> {
-  List<bool> _isExpandedList = [];
-
-  @override
-  void initState() {
-    super.initState();
-    final resumeProvider = Provider.of<ResumeProvider>(context, listen: false);
-    _isExpandedList = List<bool>.filled(
-      resumeProvider.getAllSkills.length,
-      true,
-      growable: true,
-    );
-  }
+  final _formKey = GlobalKey<FormState>();
 
   bool _allSkillsSaved(ResumeProvider resumeProvider) {
     return resumeProvider.getAllSkills.every((skill) => skill.isSaved);
@@ -44,27 +33,59 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
             },
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ListView(
+        body: Form(
+          key: _formKey,
+          child: Column(
             children: <Widget>[
-              _buildSkillsPanelList(resumeProvider),
-              _buildAddSkillButton(resumeProvider),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _allSkillsSaved(resumeProvider)
-                      ? Colors.blueAccent
-                      : Colors.grey, // Set the button color
+              // Add and Submit buttons side by side
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _allSkillsSaved(resumeProvider)
+                          ? () {
+                              // Add new skill at the top
+                              resumeProvider.addSkillAtTop(
+                                Skill(
+                                  skillController: TextEditingController(),
+                                  proficiencyController:
+                                      TextEditingController(text: 'Beginner'),
+                                  isExpanded:
+                                      true, // Ensure new skill is expanded
+                                ),
+                              );
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _allSkillsSaved(resumeProvider)
+                            ? Colors.blueAccent[400]
+                            : Colors.grey,
+                      ),
+                      child: const Text('Add Skill',
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: _allSkillsSaved(resumeProvider)
+                          ? () {
+                              Navigator.pushNamed(context, '/languagesForm');
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _allSkillsSaved(resumeProvider)
+                            ? Colors.greenAccent[400]
+                            : Colors.grey,
+                      ),
+                      child: const Text('Submit Skills',
+                          style: TextStyle(color: Colors.black)),
+                    ),
+                  ],
                 ),
-                onPressed: _allSkillsSaved(resumeProvider)
-                    ? () {
-                        Navigator.pushNamed(context,
-                            '/languagesForm'); // Navigate to LanguagesForm
-                      }
-                    : null, // Disable button if not all entries are saved
-                child: const Text('Submit Skills',
-                    style: TextStyle(color: Colors.white)),
+              ),
+              Expanded(
+                child: _buildSkillsList(resumeProvider),
               ),
             ],
           ),
@@ -73,92 +94,147 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
     );
   }
 
-  Widget _buildSkillsPanelList(ResumeProvider resumeProvider) {
-    if (_isExpandedList.length < resumeProvider.getAllSkills.length) {
-      int difference =
-          resumeProvider.getAllSkills.length - _isExpandedList.length;
-      _isExpandedList.addAll(
-          List<bool>.filled(difference, true)); // Expand new panels by default
-    } else if (_isExpandedList.length > resumeProvider.getAllSkills.length) {
-      _isExpandedList =
-          _isExpandedList.sublist(0, resumeProvider.getAllSkills.length);
-    }
-
-    return ExpansionPanelList(
-      elevation: 1,
-      expandedHeaderPadding: const EdgeInsets.all(8),
-      expansionCallback: (int index, bool isExpanded) {
-        setState(() {
-          _isExpandedList[index] = !_isExpandedList[index];
-        });
-      },
-      children: List.generate(resumeProvider.getAllSkills.length, (int index) {
+  Widget _buildSkillsList(ResumeProvider resumeProvider) {
+    return ListView.builder(
+      itemCount: resumeProvider.getAllSkills.length,
+      itemBuilder: (context, index) {
         final skill = resumeProvider.getAllSkills[index];
-        return ExpansionPanel(
-          headerBuilder: (BuildContext context, bool isExpanded) {
-            return ListTile(
-              title: Row(
-                children: [
-                  Expanded(
-                    child: _buildTextFormField(
-                      label: 'Skill Name (Required)',
-                      icon: Icons.label,
-                      controller: skill.skillController,
-                      isMandatory: true,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  SizedBox(
-                    width: 150, // Fixed width for the dropdown
-                    child: _buildProficiencyDropdown(skill),
-                  ),
-                ],
-              ),
-            );
-          },
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.greenAccent[400],
-                  ),
-                  onPressed: () {
-                    if (_validateSkillInputs(skill, context)) {
-                      setState(() {
-                        skill.isSaved = true; // Mark as saved
-                        _isExpandedList[index] = false; // Collapse the panel
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Skill saved successfully!')),
-                      );
-                    }
-                  },
-                  child: const Text('Save Skill',
-                      style: TextStyle(color: Colors.black)),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      resumeProvider.removeSkill(index);
-                      _isExpandedList.removeAt(index);
-                    });
-                  },
-                  child: const Text('Remove Skill'),
-                ),
-              ],
+        return SkillPanel(
+          key: ValueKey(skill.id),
+          skill: skill,
+          formKey: _formKey,
+        );
+      },
+    );
+  }
+}
+
+class SkillPanel extends StatefulWidget {
+  final Skill skill;
+  final GlobalKey<FormState> formKey;
+
+  const SkillPanel({
+    Key? key,
+    required this.skill,
+    required this.formKey,
+  }) : super(key: key);
+
+  @override
+  _SkillPanelState createState() => _SkillPanelState();
+}
+
+class _SkillPanelState extends State<SkillPanel> {
+  @override
+  Widget build(BuildContext context) {
+    final resumeProvider = Provider.of<ResumeProvider>(context, listen: false);
+
+    return Card(
+      key: ValueKey(widget.skill.id),
+      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      child: Column(
+        children: [
+          ListTile(
+            title: Text(
+              widget.skill.skillController.text.isEmpty
+                  ? 'Skill'
+                  : widget.skill.skillController.text,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            trailing: IconButton(
+              icon: Icon(widget.skill.isExpanded
+                  ? Icons.expand_less
+                  : Icons.expand_more),
+              onPressed: () {
+                setState(() {
+                  widget.skill.isExpanded = !widget.skill.isExpanded;
+                });
+              },
             ),
           ),
-          isExpanded: _isExpandedList[index],
-        );
-      }),
+          if (widget.skill.isExpanded)
+            _buildSkillForm(widget.skill, resumeProvider),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkillForm(Skill skill, ResumeProvider resumeProvider) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextField(
+                  label: 'Skill Name (Required)',
+                  controller: skill.skillController,
+                  isMandatory: true,
+                ),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 150,
+                child: _buildProficiencyDropdown(skill),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueAccent[400],
+            ),
+            onPressed: () {
+              if (_validateSkillInputs(skill)) {
+                setState(() {
+                  skill.isSaved = true;
+                  skill.isExpanded = false;
+                });
+                resumeProvider.notifyListeners(); // Notify parent widget
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Skill saved successfully!')),
+                );
+              } else {
+                _showErrorDialog(context, 'Please fill all required fields!');
+              }
+            },
+            child:
+                const Text('Save Skill', style: TextStyle(color: Colors.white)),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent[200],
+            ),
+            onPressed: () {
+              resumeProvider.removeSkillById(skill.id);
+            },
+            child: const Text('Remove Skill',
+                style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    bool isMandatory = false,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        labelStyle: TextStyle(
+          color:
+              isMandatory && controller.text.isEmpty ? Colors.red : Colors.grey,
+        ),
+      ),
+      validator: (value) {
+        return _validateField(value, label, isMandatory);
+      },
     );
   }
 
@@ -170,110 +246,35 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
       'Expert'
     ];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: DropdownButtonFormField<String>(
-        value: skill.proficiencyController.text.isNotEmpty
-            ? skill.proficiencyController.text
-            : proficiencyLevels[0], // Default to 'Beginner'
-        decoration: InputDecoration(
-          border: const OutlineInputBorder(),
-          filled: true,
-          fillColor: Colors.blue[50],
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 14.0, horizontal: 10.0),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: const BorderSide(color: Colors.transparent),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: const BorderSide(color: Colors.blueAccent),
-          ),
-        ),
-        isDense: true,
-        items: proficiencyLevels.map<DropdownMenuItem<String>>((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
-          );
-        }).toList(),
-        onChanged: (String? newValue) {
-          setState(() {
-            skill.proficiencyController.text = newValue!;
-          });
-        },
+    return DropdownButtonFormField<String>(
+      value: skill.proficiencyController.text.isNotEmpty
+          ? skill.proficiencyController.text
+          : 'Beginner',
+      items: proficiencyLevels.map((level) {
+        return DropdownMenuItem<String>(
+          value: level,
+          child: Text(level),
+        );
+      }).toList(),
+      decoration: InputDecoration(
+        labelText: 'Proficiency',
+        border: const OutlineInputBorder(),
       ),
-    );
-  }
-
-  Widget _buildAddSkillButton(ResumeProvider resumeProvider) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.greenAccent[400],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      onPressed: () {
+      onChanged: (value) {
         setState(() {
-          resumeProvider.addSkill(
-            Skill(
-              skillController: TextEditingController(),
-              proficiencyController: TextEditingController(),
-            ),
-          );
-          _isExpandedList.add(true); // Expand the new panel by default
+          skill.proficiencyController.text = value ?? 'Beginner';
         });
       },
-      child: const Text('Add Skill', style: TextStyle(color: Colors.black)),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Proficiency is required';
+        }
+        return null;
+      },
     );
   }
 
-  Widget _buildTextFormField({
-    required String label,
-    required IconData icon,
-    required TextEditingController controller,
-    bool isMandatory = false,
-  }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: Colors.blueAccent),
-          labelText: label,
-          labelStyle: TextStyle(
-            color: isMandatory && controller.text.isEmpty
-                ? Colors.red
-                : Colors.grey,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-              color: isMandatory && controller.text.isEmpty
-                  ? Colors.red
-                  : Colors.transparent,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-              color: isMandatory && controller.text.isEmpty
-                  ? Colors.red
-                  : Colors.blueAccent,
-            ),
-          ),
-          filled: true,
-          fillColor: Colors.blue[50],
-        ),
-        onChanged: (value) {
-          setState(() {});
-        },
-      ),
-    );
-  }
-
-  bool _validateSkillInputs(Skill skill, BuildContext context) {
+  bool _validateSkillInputs(Skill skill) {
     final RegExp allowedCharsRegex = RegExp(r'^[a-zA-Z0-9\s]+$');
 
     if (!allowedCharsRegex.hasMatch(skill.skillController.text)) {
@@ -299,7 +300,7 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the dialog
               },
               child: const Text('OK'),
             ),
@@ -307,5 +308,17 @@ class _SkillsFormPageState extends State<SkillsFormPage> {
         );
       },
     );
+  }
+
+  String? _validateField(String? value, String label, bool isMandatory) {
+    if (isMandatory && (value == null || value.trim().isEmpty)) {
+      return '$label is required';
+    }
+
+    if (value != null && !RegExp(r'^[a-zA-Z0-9\s]+$').hasMatch(value)) {
+      return '$label contains invalid characters';
+    }
+
+    return null;
   }
 }

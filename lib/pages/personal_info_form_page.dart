@@ -59,7 +59,7 @@ class PersonalInfoFormPage extends StatelessWidget {
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
+                  backgroundColor: Colors.blueAccent[400],
                 ),
                 onPressed: () {
                   if (_formKey.currentState?.validate() ?? false) {

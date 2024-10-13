@@ -4,26 +4,14 @@ import 'resume_provider.dart';
 import 'shared_layout.dart'; // Import the shared layout
 
 class EducationFormPage extends StatefulWidget {
-  const EducationFormPage({super.key});
+  const EducationFormPage({Key? key}) : super(key: key);
 
   @override
   _EducationFormPageState createState() => _EducationFormPageState();
 }
 
 class _EducationFormPageState extends State<EducationFormPage> {
-  List<bool> _isExpandedList = [];
   final _formKey = GlobalKey<FormState>(); // Form key for validation
-
-  @override
-  void initState() {
-    super.initState();
-    final resumeProvider = Provider.of<ResumeProvider>(context, listen: false);
-    _isExpandedList = List<bool>.filled(
-      resumeProvider.getAllEducation.length,
-      true,
-      growable: true,
-    );
-  }
 
   bool _allEducationEntriesSaved(ResumeProvider resumeProvider) {
     return resumeProvider.getAllEducation
@@ -34,56 +22,72 @@ class _EducationFormPageState extends State<EducationFormPage> {
   Widget build(BuildContext context) {
     final resumeProvider = Provider.of<ResumeProvider>(context);
 
-    // Wrapping the entire content in SharedLayout
     return SharedLayout(
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Education Information'),
           backgroundColor: Colors.blueAccent,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context); // Navigate back to the previous page
+            },
+          ),
         ),
         body: Form(
-          // Wrap fields in a Form
-          key: _formKey, // Assign the form key for validation
-          child: ListView(
-            padding: const EdgeInsets.all(16.0),
+          key: _formKey,
+          child: Column(
             children: <Widget>[
-              // Build list of education fields
-              _buildEducationPanelList(resumeProvider),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  // Add a new education entry
-                  setState(() {
-                    resumeProvider.addEducation(Education(
-                      schoolNameController: TextEditingController(),
-                      degreeController: TextEditingController(),
-                      fieldOfStudyController: TextEditingController(),
-                      startYearController: TextEditingController(),
-                      endYearController: TextEditingController(),
-                    ));
-                    _isExpandedList.add(true); // Expand the new entry
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent, // Set the button color
+              // Add and Submit buttons side by side
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _allEducationEntriesSaved(resumeProvider)
+                          ? () {
+                              // Add new education entry at the top
+                              setState(() {
+                                resumeProvider.addEducationAtTop(
+                                  Education(
+                                    isExpanded:
+                                        true, // Only new entry is expanded
+                                  ),
+                                );
+                              });
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            _allEducationEntriesSaved(resumeProvider)
+                                ? Colors.blueAccent[400]
+                                : Colors.grey,
+                      ),
+                      child: const Text('Add Education',
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: _allEducationEntriesSaved(resumeProvider)
+                          ? () {
+                              Navigator.pushNamed(context, '/skillsForm');
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            _allEducationEntriesSaved(resumeProvider)
+                                ? Colors.greenAccent[400]
+                                : Colors.grey,
+                      ),
+                      child: const Text('Submit Education',
+                          style: TextStyle(color: Colors.black)),
+                    ),
+                  ],
                 ),
-                child: const Text('Add Education',
-                    style: TextStyle(color: Colors.white)),
               ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _allEducationEntriesSaved(resumeProvider)
-                    ? () {
-                        Navigator.pushNamed(context, '/skillsForm');
-                      }
-                    : null, // Disable button if not all entries are saved
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _allEducationEntriesSaved(resumeProvider)
-                      ? Colors.blueAccent
-                      : Colors.grey, // Set the button color
-                ),
-                child: const Text('Submit Education',
-                    style: TextStyle(color: Colors.white)),
+              Expanded(
+                child: _buildEducationList(resumeProvider),
               ),
             ],
           ),
@@ -92,136 +96,160 @@ class _EducationFormPageState extends State<EducationFormPage> {
     );
   }
 
-  Widget _buildEducationPanelList(ResumeProvider resumeProvider) {
-    if (_isExpandedList.length < resumeProvider.getAllEducation.length) {
-      int difference =
-          resumeProvider.getAllEducation.length - _isExpandedList.length;
-      _isExpandedList.addAll(
-          List<bool>.filled(difference, true)); // Expand new panels by default
-    } else if (_isExpandedList.length > resumeProvider.getAllEducation.length) {
-      _isExpandedList =
-          _isExpandedList.sublist(0, resumeProvider.getAllEducation.length);
-    }
-
-    return ExpansionPanelList(
-      elevation: 1,
-      expandedHeaderPadding: const EdgeInsets.all(8),
-      expansionCallback: (int index, bool isExpanded) {
-        setState(() {
-          _isExpandedList[index] = !_isExpandedList[index];
-        });
-      },
-      children:
-          List.generate(resumeProvider.getAllEducation.length, (int index) {
+  Widget _buildEducationList(ResumeProvider resumeProvider) {
+    return ListView.builder(
+      itemCount: resumeProvider.getAllEducation.length,
+      itemBuilder: (context, index) {
         final education = resumeProvider.getAllEducation[index];
-        return ExpansionPanel(
-          headerBuilder: (BuildContext context, bool isExpanded) {
-            return ListTile(
-              title: Text(
-                education.schoolNameController.text.isEmpty
-                    ? 'Education ${index + 1}'
-                    : education.schoolNameController.text,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            );
-          },
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _buildTextField(
-                  label: 'School Name (Required)',
-                  controller: education.schoolNameController,
-                  isMandatory: true,
-                ),
-                _buildDropdownField(
-                  label: 'Degree (Required)',
-                  currentValue: education.degreeController.text,
-                  items: const [
-                    'High School',
-                    'Diploma',
-                    'BSc',
-                    'MSc',
-                    'PhD',
-                    'Other',
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      education.degreeController.text = value ?? 'Other';
-                    });
-                  },
-                ),
-                _buildTextField(
-                  label: 'Field of Study (Optional)',
-                  controller: education.fieldOfStudyController,
-                  isMandatory: false,
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildYearPickerField(
-                        label: 'Start Year (Required)',
-                        controller: education.startYearController,
-                        context: context,
-                        isMandatory: true,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildYearPickerField(
-                        label: 'End Year (Required)',
-                        controller: education.endYearController,
-                        context: context,
-                        isMandatory: true,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.greenAccent[400],
-                  ),
-                  onPressed: () {
-                    // Force validation before saving the entry
-                    if (_formKey.currentState!.validate() &&
-                        _validateEducationEntry(education)) {
-                      setState(() {
-                        education.isSaved = true;
-                        _isExpandedList[index] = false; // Collapse the panel
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content:
-                                Text('Education entry saved successfully!')),
-                      );
-                    } else {
-                      _showErrorDialog(
-                          context, 'Please fill all required fields!');
-                    }
-                  },
-                  child: const Text('Save Education Entry',
-                      style: TextStyle(color: Colors.black)),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      resumeProvider.removeEducation(index);
-                      _isExpandedList.removeAt(index);
-                    });
-                  },
-                  child: const Text('Remove Education Entry'),
-                ),
-              ],
+        return EducationPanel(
+          key: ValueKey(education.id),
+          education: education,
+        );
+      },
+    );
+  }
+}
+
+class EducationPanel extends StatefulWidget {
+  final Education education;
+
+  const EducationPanel({
+    Key? key,
+    required this.education,
+  }) : super(key: key);
+
+  @override
+  _EducationPanelState createState() => _EducationPanelState();
+}
+
+class _EducationPanelState extends State<EducationPanel> {
+  @override
+  Widget build(BuildContext context) {
+    final education = widget.education;
+    final resumeProvider = Provider.of<ResumeProvider>(context, listen: false);
+
+    return Card(
+      key: ValueKey(education.id),
+      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      child: Column(
+        children: [
+          ListTile(
+            title: Text(
+              education.schoolNameController.text.isEmpty
+                  ? 'Education'
+                  : education.schoolNameController.text,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            trailing: IconButton(
+              icon: Icon(
+                  education.isExpanded ? Icons.expand_less : Icons.expand_more),
+              onPressed: () {
+                setState(() {
+                  education.isExpanded = !education.isExpanded;
+                });
+              },
             ),
           ),
-          isExpanded: _isExpandedList[index],
-        );
-      }),
+          if (education.isExpanded)
+            _buildEducationForm(education, resumeProvider),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEducationForm(
+      Education education, ResumeProvider resumeProvider) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          _buildTextField(
+            label: 'School Name (Required)',
+            controller: education.schoolNameController,
+            isMandatory: true,
+          ),
+          const SizedBox(height: 10),
+          _buildDropdownField(
+            label: 'Degree (Required)',
+            currentValue: education.degreeController.text,
+            items: const [
+              'High School',
+              'Diploma',
+              'BSc',
+              'MSc',
+              'PhD',
+              'Other',
+            ],
+            onChanged: (value) {
+              setState(() {
+                education.degreeController.text = value ?? 'Other';
+              });
+            },
+          ),
+          const SizedBox(height: 10),
+          _buildTextField(
+            label: 'Field of Study (Optional)',
+            controller: education.fieldOfStudyController,
+            isMandatory: false,
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _buildYearPickerField(
+                  label: 'Start Year (Required)',
+                  controller: education.startYearController,
+                  isMandatory: true,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildYearPickerField(
+                  label: 'End Year (Required)',
+                  controller: education.endYearController,
+                  isMandatory: true,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueAccent[400],
+            ),
+            onPressed: () {
+              if (_validateEducationEntry(education)) {
+                setState(() {
+                  education.isSaved = true;
+                  education.isExpanded = false; // Collapse panel after saving
+                });
+                resumeProvider.notifyListeners(); // Notify the provider
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Education entry saved successfully!')),
+                );
+              } else {
+                _showErrorDialog(context, 'Please fill all required fields!');
+              }
+            },
+            child: const Text('Save Education Entry',
+                style: TextStyle(color: Colors.white)),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent[200],
+            ),
+            onPressed: () {
+              setState(() {
+                resumeProvider.removeEducationById(education.id);
+              });
+            },
+            child: const Text('Remove Education Entry',
+                style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -230,23 +258,19 @@ class _EducationFormPageState extends State<EducationFormPage> {
     required TextEditingController controller,
     bool isMandatory = false,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          labelStyle: TextStyle(
-            color: isMandatory && controller.text.isEmpty
-                ? Colors.red
-                : Colors.grey,
-          ),
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        labelStyle: TextStyle(
+          color:
+              isMandatory && controller.text.isEmpty ? Colors.red : Colors.grey,
         ),
-        validator: (value) {
-          return _validateField(value, label, isMandatory);
-        },
       ),
+      validator: (value) {
+        return _validateField(value, label, isMandatory);
+      },
     );
   }
 
@@ -256,57 +280,49 @@ class _EducationFormPageState extends State<EducationFormPage> {
     required List<String> items,
     required Function(String?) onChanged,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: DropdownButtonFormField<String>(
-        value: currentValue.isNotEmpty ? currentValue : null,
-        items: items.map((item) {
-          return DropdownMenuItem(value: item, child: Text(item));
-        }).toList(),
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-        ),
-        onChanged: onChanged,
-        validator: (value) {
-          return _validateField(value, label, true);
-        },
+    return DropdownButtonFormField<String>(
+      value: currentValue.isNotEmpty ? currentValue : null,
+      items: items.map((item) {
+        return DropdownMenuItem(value: item, child: Text(item));
+      }).toList(),
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
       ),
+      onChanged: onChanged,
+      validator: (value) {
+        return _validateField(value, label, true);
+      },
     );
   }
 
   Widget _buildYearPickerField({
     required String label,
     required TextEditingController controller,
-    required BuildContext context,
     bool isMandatory = false,
   }) {
     return InkWell(
       onTap: () async {
         await _selectYear(context, controller);
       },
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: IgnorePointer(
-          child: TextFormField(
-            controller: controller,
-            decoration: InputDecoration(
-              prefixIcon:
-                  const Icon(Icons.calendar_today, color: Colors.blueAccent),
-              labelText: label,
-              labelStyle: TextStyle(
-                color: isMandatory && controller.text.isEmpty
-                    ? Colors.red
-                    : Colors.grey,
-              ),
-              border: const OutlineInputBorder(),
+      child: IgnorePointer(
+        child: TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+            labelStyle: TextStyle(
+              color: isMandatory && controller.text.isEmpty
+                  ? Colors.red
+                  : Colors.grey,
             ),
-            enabled: false, // Disable manual typing
-            validator: (value) {
-              return _validateYearField(controller.text, label);
-            },
+            suffixIcon:
+                const Icon(Icons.calendar_today, color: Colors.blueAccent),
           ),
+          enabled: false, // Disable manual typing
+          validator: (value) {
+            return _validateYearField(controller.text, label);
+          },
         ),
       ),
     );
@@ -317,7 +333,6 @@ class _EducationFormPageState extends State<EducationFormPage> {
     int? selectedYear = await showDialog<int>(
       context: context,
       builder: (BuildContext context) {
-        int currentYear = DateTime.now().year;
         return AlertDialog(
           title: const Text('Select Year'),
           content: SizedBox(
@@ -326,6 +341,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
             child: YearPicker(
               firstDate: DateTime(1950),
               lastDate: DateTime.now(),
+              initialDate: DateTime.now(),
               selectedDate: DateTime.now(),
               onChanged: (DateTime dateTime) {
                 Navigator.pop(context, dateTime.year);
@@ -338,12 +354,6 @@ class _EducationFormPageState extends State<EducationFormPage> {
                 Navigator.pop(context);
               },
               child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, currentYear);
-              },
-              child: const Text('Confirm'),
             ),
           ],
         );
@@ -388,11 +398,29 @@ class _EducationFormPageState extends State<EducationFormPage> {
   }
 
   bool _validateEducationEntry(Education education) {
-    final String startYear = education.startYearController.text;
-    final String endYear = education.endYearController.text;
+    final String schoolName = education.schoolNameController.text.trim();
+    final String degree = education.degreeController.text.trim();
+    final String startYear = education.startYearController.text.trim();
+    final String endYear = education.endYearController.text.trim();
 
-    if (int.tryParse(startYear)! > int.tryParse(endYear)!) {
-      _showErrorDialog(context, 'End year cannot be before start year');
+    if (schoolName.isEmpty ||
+        degree.isEmpty ||
+        startYear.isEmpty ||
+        endYear.isEmpty) {
+      _showErrorDialog(context, 'Please fill all required fields!');
+      return false;
+    }
+
+    final int? startYearInt = int.tryParse(startYear);
+    final int? endYearInt = int.tryParse(endYear);
+
+    if (startYearInt == null || endYearInt == null) {
+      _showErrorDialog(context, 'Please enter valid years.');
+      return false;
+    }
+
+    if (startYearInt > endYearInt) {
+      _showErrorDialog(context, 'End year cannot be before start year.');
       return false;
     }
 
@@ -417,16 +445,5 @@ class _EducationFormPageState extends State<EducationFormPage> {
         );
       },
     );
-  }
-
-  bool _validateEducation(ResumeProvider resumeProvider) {
-    bool allValid = true;
-    for (var education in resumeProvider.getAllEducation) {
-      if (!education.isSaved || !_validateEducationEntry(education)) {
-        allValid = false;
-        break;
-      }
-    }
-    return allValid;
   }
 }

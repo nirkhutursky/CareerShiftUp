@@ -4,31 +4,18 @@ import 'shared_layout.dart'; // Import the shared layout
 import 'resume_provider.dart';
 
 class ResumeFormPage extends StatefulWidget {
-  const ResumeFormPage({super.key});
+  const ResumeFormPage({Key? key}) : super(key: key);
 
   @override
   _ResumeFormPageState createState() => _ResumeFormPageState();
 }
 
 class _ResumeFormPageState extends State<ResumeFormPage> {
-  List<bool> _isExpandedList = [];
+  final _formKey = GlobalKey<FormState>();
 
-  @override
-  void initState() {
-    super.initState();
-    final resumeProvider = Provider.of<ResumeProvider>(context, listen: false);
-    _syncExpansionState(resumeProvider);
-  }
-
-  // Sync _isExpandedList with the number of work experiences in the provider
-  void _syncExpansionState(ResumeProvider resumeProvider) {
-    setState(() {
-      _isExpandedList = List<bool>.filled(
-        resumeProvider.getAllExperiences.length,
-        true,
-        growable: true,
-      );
-    });
+  bool _allExperiencesSaved(ResumeProvider resumeProvider) {
+    return resumeProvider.getAllExperiences
+        .every((experience) => experience.isSaved);
   }
 
   @override
@@ -47,25 +34,71 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
             },
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ListView(
+        body: Form(
+          key: _formKey,
+          child: Column(
             children: <Widget>[
-              _buildWorkExperiencePanelList(resumeProvider),
-              _buildAddExperienceButton(resumeProvider),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
+              // Add and Submit buttons side by side
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _allExperiencesSaved(resumeProvider)
+                          ? () {
+                              // Add new experience at the top
+                              resumeProvider.addExperienceAtTop(
+                                WorkExperience(
+                                  jobTitleController: TextEditingController(),
+                                  companyController: TextEditingController(),
+                                  startDateController: TextEditingController(),
+                                  endDateController: TextEditingController(),
+                                  descriptionController:
+                                      TextEditingController(),
+                                  isExpanded:
+                                      true, // Ensure new experience is expanded
+                                ),
+                              );
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _allExperiencesSaved(resumeProvider)
+                            ? Colors.blueAccent[400]
+                            : Colors.grey,
+                      ),
+                      child: const Text('Add Work Experience',
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: _allExperiencesSaved(resumeProvider)
+                          ? () {
+                              Navigator.pushNamed(context, '/summaryPage');
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _allExperiencesSaved(resumeProvider)
+                            ? Colors.greenAccent[400]
+                            : Colors.grey,
+                      ),
+                      child: const Text('Submit Work Experiences',
+                          style: TextStyle(color: Colors.black)),
+                    ),
+                  ],
                 ),
-                onPressed: resumeProvider.getAllExperiences
-                        .any((experience) => !experience.isSaved)
-                    ? null
-                    : () {
-                        Navigator.pushNamed(context, '/summaryPage');
-                      },
-                child: const Text('Submit Work Experiences',
-                    style: TextStyle(color: Colors.white)),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: resumeProvider.getAllExperiences.length,
+                  itemBuilder: (context, index) {
+                    final experience = resumeProvider.getAllExperiences[index];
+                    return WorkExperiencePanel(
+                      key: ValueKey(experience.id),
+                      experience: experience,
+                    );
+                  },
+                ),
               ),
             ],
           ),
@@ -73,241 +106,180 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
       ),
     );
   }
+}
 
-  Widget _buildWorkExperiencePanelList(ResumeProvider resumeProvider) {
-    if (_isExpandedList.length < resumeProvider.getAllExperiences.length) {
-      int difference =
-          resumeProvider.getAllExperiences.length - _isExpandedList.length;
-      _isExpandedList.addAll(
-          List<bool>.filled(difference, true)); // Expand new panels by default
-    } else if (_isExpandedList.length >
-        resumeProvider.getAllExperiences.length) {
-      _isExpandedList =
-          _isExpandedList.sublist(0, resumeProvider.getAllExperiences.length);
-    }
+class WorkExperiencePanel extends StatefulWidget {
+  final WorkExperience experience;
 
-    return ExpansionPanelList(
-      elevation: 1,
-      expandedHeaderPadding: const EdgeInsets.all(8),
-      expansionCallback: (int index, bool isExpanded) {
-        setState(() {
-          _isExpandedList[index] = !_isExpandedList[index];
-        });
-      },
-      children:
-          List.generate(resumeProvider.getAllExperiences.length, (int index) {
-        final experience = resumeProvider.getAllExperiences[index];
-        return ExpansionPanel(
-          headerBuilder: (BuildContext context, bool isExpanded) {
-            return ListTile(
-              title: Text(
-                experience.jobTitleController.text.isEmpty
-                    ? 'Work Experience ${index + 1}'
-                    : experience.jobTitleController.text,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            );
-          },
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _buildTextFormField(
-                  label: 'Job Title (Required)',
-                  icon: Icons.work,
-                  controller: experience.jobTitleController,
-                  isMandatory: true,
-                  context: context,
-                ),
-                _buildTextFormField(
-                  label: 'Company Name (Required)',
-                  icon: Icons.business,
-                  controller: experience.companyController,
-                  isMandatory: true,
-                  context: context,
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildYearPickerField(
-                        label: 'Start Year (Required)',
-                        controller: experience.startDateController,
-                        context: context,
-                        isMandatory: true,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildYearPickerField(
-                        label: 'End Year (Required)',
-                        controller: experience.endDateController,
-                        context: context,
-                        isMandatory: true,
-                      ),
-                    ),
-                  ],
-                ),
-                _buildTextFormField(
-                  label: 'Role Description (Optional)',
-                  icon: Icons.description,
-                  controller: experience.descriptionController,
-                  isMandatory: false,
-                  context: context,
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.greenAccent[400],
-                  ),
-                  onPressed: () {
-                    if (_validateExperienceInputs(experience, context)) {
-                      setState(() {
-                        experience.isSaved = true;
-                        _isExpandedList[index] = false; // Collapse the panel
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content:
-                                Text('Work experience saved successfully!')),
-                      );
-                    }
-                  },
-                  child: const Text('Save Work Experience',
-                      style: TextStyle(color: Colors.black)),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent),
-                  onPressed: () {
-                    setState(() {
-                      resumeProvider.removeExperience(index);
-                      _isExpandedList.removeAt(index);
-                    });
-                  },
-                  child: const Text('Remove Work Experience'),
-                ),
-              ],
+  const WorkExperiencePanel({
+    Key? key,
+    required this.experience,
+  }) : super(key: key);
+
+  @override
+  _WorkExperiencePanelState createState() => _WorkExperiencePanelState();
+}
+
+class _WorkExperiencePanelState extends State<WorkExperiencePanel> {
+  @override
+  Widget build(BuildContext context) {
+    final resumeProvider = Provider.of<ResumeProvider>(context, listen: false);
+    final experience = widget.experience;
+
+    return Card(
+      key: ValueKey(experience.id),
+      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      child: Column(
+        children: [
+          ListTile(
+            title: Text(
+              experience.jobTitleController.text.isEmpty
+                  ? 'Work Experience'
+                  : experience.jobTitleController.text,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            trailing: IconButton(
+              icon: Icon(experience.isExpanded
+                  ? Icons.expand_less
+                  : Icons.expand_more),
+              onPressed: () {
+                setState(() {
+                  experience.isExpanded = !experience.isExpanded;
+                });
+              },
             ),
           ),
-          isExpanded: _isExpandedList[index],
-        );
-      }),
-    );
-  }
-
-  Widget _buildAddExperienceButton(ResumeProvider resumeProvider) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.greenAccent[400],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      onPressed: () {
-        setState(() {
-          resumeProvider.addExperience(
-            WorkExperience(
-              jobTitleController: TextEditingController(),
-              companyController: TextEditingController(),
-              startDateController: TextEditingController(),
-              endDateController: TextEditingController(),
-              descriptionController: TextEditingController(),
+          if (experience.isExpanded)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  _buildTextFormField(
+                    label: 'Job Title (Required)',
+                    controller: experience.jobTitleController,
+                    isMandatory: true,
+                  ),
+                  const SizedBox(height: 10),
+                  _buildTextFormField(
+                    label: 'Company Name (Required)',
+                    controller: experience.companyController,
+                    isMandatory: true,
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildYearPickerField(
+                          label: 'Start Year (Required)',
+                          controller: experience.startDateController,
+                          isMandatory: true,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildYearPickerField(
+                          label: 'End Year (Required)',
+                          controller: experience.endDateController,
+                          isMandatory: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  _buildTextFormField(
+                    label: 'Role Description (Optional)',
+                    controller: experience.descriptionController,
+                    isMandatory: false,
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent[400],
+                    ),
+                    onPressed: () {
+                      if (_validateExperienceInputs(experience, context)) {
+                        setState(() {
+                          experience.isSaved = true;
+                          experience.isExpanded = false;
+                        });
+                        resumeProvider.notifyListeners();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content:
+                                  Text('Work experience saved successfully!')),
+                        );
+                      } else {
+                        _showErrorDialog(
+                            context, 'Please fill all required fields!');
+                      }
+                    },
+                    child: const Text('Save Work Experience',
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent[200],
+                    ),
+                    onPressed: () {
+                      resumeProvider.removeExperienceById(experience.id);
+                    },
+                    child: const Text('Remove Work Experience',
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                ],
+              ),
             ),
-          );
-          _isExpandedList.add(true); // Expand the new panel by default
-        });
-      },
-      child: const Text('Add Work Experience',
-          style: TextStyle(color: Colors.black)),
+        ],
+      ),
     );
   }
 
   Widget _buildTextFormField({
     required String label,
-    required IconData icon,
     required TextEditingController controller,
-    required BuildContext context,
     bool isMandatory = false,
   }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: Colors.blueAccent),
-          labelText: label,
-          labelStyle: TextStyle(
-            color: isMandatory && controller.text.isEmpty
-                ? Colors.red
-                : Colors.grey,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-              color: isMandatory && controller.text.isEmpty
-                  ? Colors.red
-                  : Colors.transparent,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-              color: isMandatory && controller.text.isEmpty
-                  ? Colors.red
-                  : Colors.blueAccent,
-            ),
-          ),
-          filled: true,
-          fillColor: Colors.blue[50],
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        labelStyle: TextStyle(
+          color:
+              isMandatory && controller.text.isEmpty ? Colors.red : Colors.grey,
         ),
-        validator: (value) {
-          return _validateAlphabeticField(value, label);
-        },
-        onChanged: (value) {
-          setState(() {}); // Update UI
-        },
       ),
+      validator: (value) {
+        return _validateField(value, label, isMandatory);
+      },
     );
   }
 
   Widget _buildYearPickerField({
     required String label,
     required TextEditingController controller,
-    required BuildContext context,
     bool isMandatory = false,
   }) {
     return InkWell(
       onTap: () async {
         await _selectYear(context, controller);
       },
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: IgnorePointer(
-          child: TextFormField(
-            controller: controller,
-            decoration: InputDecoration(
-              prefixIcon:
-                  const Icon(Icons.calendar_today, color: Colors.blueAccent),
-              labelText: label,
-              labelStyle: TextStyle(
-                color: isMandatory && controller.text.isEmpty
-                    ? Colors.red
-                    : Colors.grey,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: isMandatory && controller.text.isEmpty
-                      ? Colors.red
-                      : Colors.transparent,
-                ),
-              ),
-              filled: true,
-              fillColor: Colors.blue[50],
+      child: IgnorePointer(
+        child: TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+            labelStyle: TextStyle(
+              color: isMandatory && controller.text.isEmpty
+                  ? Colors.red
+                  : Colors.grey,
             ),
-            enabled: false, // Disable manual typing
+            suffixIcon:
+                const Icon(Icons.calendar_today, color: Colors.blueAccent),
           ),
+          enabled: false, // Disable manual typing
         ),
       ),
     );
@@ -318,7 +290,6 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
     int? selectedYear = await showDialog<int>(
       context: context,
       builder: (BuildContext context) {
-        int currentYear = DateTime.now().year;
         return AlertDialog(
           title: const Text('Select Year'),
           content: SizedBox(
@@ -341,12 +312,6 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
               },
               child: const Text('Cancel'),
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, currentYear);
-              },
-              child: const Text('Confirm'),
-            ),
           ],
         );
       },
@@ -357,17 +322,6 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
         controller.text = selectedYear.toString();
       });
     }
-  }
-
-  bool _validateInputs(ResumeProvider resumeProvider) {
-    bool allValid = true;
-    for (var experience in resumeProvider.getAllExperiences) {
-      if (!experience.isSaved) {
-        allValid = false;
-        break;
-      }
-    }
-    return allValid;
   }
 
   bool _validateExperienceInputs(
@@ -408,6 +362,14 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
     }
 
     return true; // If all checks pass, the input is valid
+  }
+
+  String? _validateField(String? value, String label, bool isMandatory) {
+    if (isMandatory && (value == null || value.trim().isEmpty)) {
+      return '$label is required';
+    }
+
+    return null;
   }
 
   String? _validateAlphabeticField(String? value, String fieldName) {

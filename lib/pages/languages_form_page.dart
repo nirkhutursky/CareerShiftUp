@@ -4,32 +4,14 @@ import 'resume_provider.dart'; // Ensure this import is correct
 import 'shared_layout.dart'; // Import the shared layout
 
 class LanguagesFormPage extends StatefulWidget {
-  const LanguagesFormPage({super.key});
+  const LanguagesFormPage({Key? key}) : super(key: key);
 
   @override
   _LanguagesFormPageState createState() => _LanguagesFormPageState();
 }
 
 class _LanguagesFormPageState extends State<LanguagesFormPage> {
-  List<bool> _isExpandedList = [];
-
-  @override
-  void initState() {
-    super.initState();
-    final resumeProvider = Provider.of<ResumeProvider>(context, listen: false);
-    _syncExpansionState(resumeProvider);
-  }
-
-  // Sync _isExpandedList with the number of languages in the provider
-  void _syncExpansionState(ResumeProvider resumeProvider) {
-    setState(() {
-      _isExpandedList = List<bool>.filled(
-        resumeProvider.getAllLanguages.length,
-        true,
-        growable: true,
-      );
-    });
-  }
+  final _formKey = GlobalKey<FormState>();
 
   bool _allLanguagesSaved(ResumeProvider resumeProvider) {
     return resumeProvider.getAllLanguages.every((language) => language.isSaved);
@@ -51,27 +33,60 @@ class _LanguagesFormPageState extends State<LanguagesFormPage> {
             },
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ListView(
+        body: Form(
+          key: _formKey,
+          child: Column(
             children: <Widget>[
-              _buildLanguagesPanelList(resumeProvider),
-              _buildAddLanguageButton(resumeProvider),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _allLanguagesSaved(resumeProvider)
-                      ? Colors.blueAccent
-                      : Colors.grey, // Set the button color
+              // Add and Submit buttons side by side
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _allLanguagesSaved(resumeProvider)
+                          ? () {
+                              // Add new language at the top
+                              resumeProvider.addLanguageAtTop(
+                                Language(
+                                  languageNameController:
+                                      TextEditingController(),
+                                  proficiencyController:
+                                      TextEditingController(text: 'Beginner'),
+                                  isExpanded:
+                                      true, // Ensure new language is expanded
+                                ),
+                              );
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _allLanguagesSaved(resumeProvider)
+                            ? Colors.blueAccent
+                            : Colors.grey,
+                      ),
+                      child: const Text('Add Language',
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: _allLanguagesSaved(resumeProvider)
+                          ? () {
+                              Navigator.pushNamed(context, '/resumeForm');
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _allLanguagesSaved(resumeProvider)
+                            ? Colors.greenAccent[400]
+                            : Colors.grey,
+                      ),
+                      child: const Text('Submit Languages',
+                          style: TextStyle(color: Colors.black)),
+                    ),
+                  ],
                 ),
-                onPressed: _allLanguagesSaved(resumeProvider)
-                    ? () {
-                        Navigator.pushNamed(context,
-                            '/resumeForm'); // Navigate to the next form
-                      }
-                    : null, // Disable button if not all entries are saved
-                child: const Text('Submit Languages',
-                    style: TextStyle(color: Colors.white)),
+              ),
+              Expanded(
+                child: _buildLanguagesList(resumeProvider),
               ),
             ],
           ),
@@ -80,87 +95,148 @@ class _LanguagesFormPageState extends State<LanguagesFormPage> {
     );
   }
 
-  Widget _buildLanguagesPanelList(ResumeProvider resumeProvider) {
-    // Sync _isExpandedList if the number of languages changes
-    if (_isExpandedList.length != resumeProvider.getAllLanguages.length) {
-      _syncExpansionState(resumeProvider);
-    }
-
-    return ExpansionPanelList(
-      elevation: 1,
-      expandedHeaderPadding: const EdgeInsets.all(8),
-      expansionCallback: (int index, bool isExpanded) {
-        setState(() {
-          _isExpandedList[index] = !_isExpandedList[index];
-        });
-      },
-      children:
-          List.generate(resumeProvider.getAllLanguages.length, (int index) {
+  Widget _buildLanguagesList(ResumeProvider resumeProvider) {
+    return ListView.builder(
+      itemCount: resumeProvider.getAllLanguages.length,
+      itemBuilder: (context, index) {
         final language = resumeProvider.getAllLanguages[index];
-        return ExpansionPanel(
-          headerBuilder: (BuildContext context, bool isExpanded) {
-            return ListTile(
-              title: Row(
-                children: [
-                  Expanded(
-                    child: _buildTextFormField(
-                      label: 'Language Name (Required)',
-                      icon: Icons.language,
-                      controller: language.languageNameController,
-                      isMandatory: true,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: _buildProficiencyDropdown(language),
-                  ),
-                ],
-              ),
-            );
-          },
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.greenAccent[400],
-                  ),
-                  onPressed: () {
-                    if (_validateLanguageInputs(language, context)) {
-                      setState(() {
-                        language.isSaved = true; // Mark as saved
-                        _isExpandedList[index] = false; // Collapse the panel
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Language saved successfully!')),
-                      );
-                    }
-                  },
-                  child: const Text('Save Language',
-                      style: TextStyle(color: Colors.black)),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      resumeProvider.removeLanguage(index);
-                      _isExpandedList.removeAt(index);
-                    });
-                  },
-                  child: const Text('Remove Language'),
-                ),
-              ],
+        return LanguagePanel(
+          key: ValueKey(language.id),
+          language: language,
+          formKey: _formKey,
+        );
+      },
+    );
+  }
+}
+
+class LanguagePanel extends StatefulWidget {
+  final Language language;
+  final GlobalKey<FormState> formKey;
+
+  const LanguagePanel({
+    Key? key,
+    required this.language,
+    required this.formKey,
+  }) : super(key: key);
+
+  @override
+  _LanguagePanelState createState() => _LanguagePanelState();
+}
+
+class _LanguagePanelState extends State<LanguagePanel> {
+  @override
+  Widget build(BuildContext context) {
+    final resumeProvider = Provider.of<ResumeProvider>(context, listen: false);
+
+    return Card(
+      key: ValueKey(widget.language.id),
+      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      child: Column(
+        children: [
+          ListTile(
+            title: Text(
+              widget.language.languageNameController.text.isEmpty
+                  ? 'Language'
+                  : widget.language.languageNameController.text,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            trailing: IconButton(
+              icon: Icon(widget.language.isExpanded
+                  ? Icons.expand_less
+                  : Icons.expand_more),
+              onPressed: () {
+                setState(() {
+                  widget.language.isExpanded = !widget.language.isExpanded;
+                });
+              },
             ),
           ),
-          isExpanded: _isExpandedList[index],
-        );
-      }),
+          if (widget.language.isExpanded)
+            _buildLanguageForm(widget.language, resumeProvider),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageForm(Language language, ResumeProvider resumeProvider) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: _buildTextField(
+                  label: 'Language Name (Required)',
+                  controller: language.languageNameController,
+                  isMandatory: true,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 1,
+                child: _buildProficiencyDropdown(language),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueAccent[400],
+            ),
+            onPressed: () {
+              if (_validateLanguageInputs(language)) {
+                setState(() {
+                  language.isSaved = true;
+                  language.isExpanded = false;
+                });
+                resumeProvider.notifyListeners(); // Notify parent widget
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Language saved successfully!')),
+                );
+              } else {
+                _showErrorDialog(context, 'Please fill all required fields!');
+              }
+            },
+            child: const Text('Save Language',
+                style: TextStyle(color: Colors.white)),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent[200],
+            ),
+            onPressed: () {
+              resumeProvider.removeLanguageById(language.id);
+            },
+            child: const Text('Remove Language',
+                style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    bool isMandatory = false,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        labelStyle: TextStyle(
+          color:
+              isMandatory && controller.text.isEmpty ? Colors.red : Colors.grey,
+        ),
+      ),
+      validator: (value) {
+        return _validateField(value, label, isMandatory);
+      },
     );
   }
 
@@ -174,111 +250,35 @@ class _LanguagesFormPageState extends State<LanguagesFormPage> {
       'Proficient'
     ];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: DropdownButtonFormField<String>(
-        value: language.proficiencyController.text.isNotEmpty
-            ? language.proficiencyController.text
-            : proficiencyLevels[0], // Default to 'Beginner'
-        decoration: InputDecoration(
-          border: const OutlineInputBorder(),
-          filled: true,
-          fillColor: Colors.blue[50],
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 14.0, horizontal: 10.0),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: const BorderSide(color: Colors.transparent),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: const BorderSide(color: Colors.blueAccent),
-          ),
-        ),
-        isDense: true,
-        items: proficiencyLevels.map<DropdownMenuItem<String>>((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
-          );
-        }).toList(),
-        onChanged: (String? newValue) {
-          setState(() {
-            language.proficiencyController.text = newValue!;
-          });
-        },
-      ),
-    );
-  }
-
-  Widget _buildAddLanguageButton(ResumeProvider resumeProvider) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.greenAccent[400],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      onPressed: () {
-        resumeProvider.addLanguage(
-          Language(
-            languageNameController: TextEditingController(),
-            proficiencyController: TextEditingController(),
-          ),
+    return DropdownButtonFormField<String>(
+      value: language.proficiencyController.text.isNotEmpty
+          ? language.proficiencyController.text
+          : 'Beginner',
+      items: proficiencyLevels.map((level) {
+        return DropdownMenuItem<String>(
+          value: level,
+          child: Text(level),
         );
-
+      }).toList(),
+      decoration: InputDecoration(
+        labelText: 'Proficiency',
+        border: const OutlineInputBorder(),
+      ),
+      onChanged: (value) {
         setState(() {
-          _syncExpansionState(resumeProvider);
+          language.proficiencyController.text = value ?? 'Beginner';
         });
       },
-      child: const Text('Add Language', style: TextStyle(color: Colors.black)),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Proficiency is required';
+        }
+        return null;
+      },
     );
   }
 
-  Widget _buildTextFormField({
-    required String label,
-    required IconData icon,
-    required TextEditingController controller,
-    bool isMandatory = false,
-  }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: Colors.blueAccent),
-          labelText: label,
-          labelStyle: TextStyle(
-            color: isMandatory && controller.text.isEmpty
-                ? Colors.red
-                : Colors.grey,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-              color: isMandatory && controller.text.isEmpty
-                  ? Colors.red
-                  : Colors.transparent,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-              color: isMandatory && controller.text.isEmpty
-                  ? Colors.red
-                  : Colors.blueAccent,
-            ),
-          ),
-          filled: true,
-          fillColor: Colors.blue[50],
-        ),
-        onChanged: (value) {
-          setState(() {});
-        },
-      ),
-    );
-  }
-
-  bool _validateLanguageInputs(Language language, BuildContext context) {
+  bool _validateLanguageInputs(Language language) {
     final RegExp allowedCharsRegex = RegExp(r'^[a-zA-Z\s]+$');
 
     if (!allowedCharsRegex.hasMatch(language.languageNameController.text)) {
@@ -304,7 +304,7 @@ class _LanguagesFormPageState extends State<LanguagesFormPage> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the dialog
               },
               child: const Text('OK'),
             ),
@@ -312,5 +312,17 @@ class _LanguagesFormPageState extends State<LanguagesFormPage> {
         );
       },
     );
+  }
+
+  String? _validateField(String? value, String label, bool isMandatory) {
+    if (isMandatory && (value == null || value.trim().isEmpty)) {
+      return '$label is required';
+    }
+
+    if (value != null && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+      return '$label contains invalid characters';
+    }
+
+    return null;
   }
 }

@@ -1,25 +1,36 @@
 import 'package:flutter/material.dart';
 
 class WorkExperience {
+  final int id;
   TextEditingController jobTitleController;
   TextEditingController companyController;
   TextEditingController startDateController;
   TextEditingController endDateController;
   TextEditingController descriptionController;
-  bool isExpanded;
   bool isSaved;
+  bool isExpanded;
+
+  static int _idCounter = 0;
 
   WorkExperience({
-    required this.jobTitleController,
-    required this.companyController,
-    required this.startDateController,
-    required this.endDateController,
-    required this.descriptionController,
-    this.isExpanded = true,
+    TextEditingController? jobTitleController,
+    TextEditingController? companyController,
+    TextEditingController? startDateController,
+    TextEditingController? endDateController,
+    TextEditingController? descriptionController,
     this.isSaved = false,
-  });
+    bool? isExpanded,
+    int? id,
+  })  : id = id ?? _idCounter++,
+        isExpanded = isExpanded ?? true,
+        jobTitleController = jobTitleController ?? TextEditingController(),
+        companyController = companyController ?? TextEditingController(),
+        startDateController = startDateController ?? TextEditingController(),
+        endDateController = endDateController ?? TextEditingController(),
+        descriptionController =
+            descriptionController ?? TextEditingController();
 
-  // Getters for UI compatibility
+  // Getters for convenience
   String get jobTitle => jobTitleController.text;
   String get companyName => companyController.text;
   String get startDate => startDateController.text;
@@ -27,13 +38,16 @@ class WorkExperience {
   String get description => descriptionController.text;
 
   // Convert to Map for serialization purposes
-  Map<String, String> toMap() {
+  Map<String, dynamic> toMap() {
     return {
-      'jobTitle': jobTitleController.text,
-      'companyName': companyController.text,
-      'startDate': startDateController.text,
-      'endDate': endDateController.text,
-      'description': descriptionController.text,
+      'id': id,
+      'jobTitle': jobTitle,
+      'companyName': companyName,
+      'startDate': startDate,
+      'endDate': endDate,
+      'description': description,
+      'isSaved': isSaved,
+      'isExpanded': isExpanded,
     };
   }
 
@@ -48,22 +62,57 @@ class WorkExperience {
 }
 
 class Education {
+  final int id;
   TextEditingController schoolNameController;
   TextEditingController degreeController;
   TextEditingController fieldOfStudyController;
   TextEditingController startYearController;
   TextEditingController endYearController;
   bool isSaved;
+  bool isExpanded;
+
+  static int _idCounter = 0;
 
   Education({
-    required this.schoolNameController,
-    required this.degreeController,
-    required this.fieldOfStudyController,
-    required this.startYearController,
-    required this.endYearController,
+    TextEditingController? schoolNameController,
+    TextEditingController? degreeController,
+    TextEditingController? fieldOfStudyController,
+    TextEditingController? startYearController,
+    TextEditingController? endYearController,
     this.isSaved = false,
-  });
+    bool? isExpanded,
+    int? id,
+  })  : id = id ?? _idCounter++,
+        isExpanded = isExpanded ?? true,
+        schoolNameController = schoolNameController ?? TextEditingController(),
+        degreeController = degreeController ?? TextEditingController(),
+        fieldOfStudyController =
+            fieldOfStudyController ?? TextEditingController(),
+        startYearController = startYearController ?? TextEditingController(),
+        endYearController = endYearController ?? TextEditingController();
 
+  // Getters for convenience
+  String get schoolName => schoolNameController.text;
+  String get degree => degreeController.text;
+  String get fieldOfStudy => fieldOfStudyController.text;
+  String get startYear => startYearController.text;
+  String get endYear => endYearController.text;
+
+  // Convert to Map for serialization purposes
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'schoolName': schoolName,
+      'degree': degree,
+      'fieldOfStudy': fieldOfStudy,
+      'startYear': startYear,
+      'endYear': endYear,
+      'isSaved': isSaved,
+      'isExpanded': isExpanded,
+    };
+  }
+
+  // Dispose controllers to avoid memory leaks
   void dispose() {
     schoolNameController.dispose();
     degreeController.dispose();
@@ -71,70 +120,92 @@ class Education {
     startYearController.dispose();
     endYearController.dispose();
   }
-
-  // Convert to Map
-  Map<String, String> toMap() {
-    return {
-      'schoolName': schoolNameController.text,
-      'degree': degreeController.text,
-      'fieldOfStudy': fieldOfStudyController.text,
-      'startYear': startYearController.text,
-      'endYear': endYearController.text,
-    };
-  }
 }
 
 class Skill {
+  final int id;
   TextEditingController skillController;
   TextEditingController proficiencyController;
   bool isSaved;
+  bool isExpanded;
+
+  static int _idCounter = 0;
 
   Skill({
-    required this.skillController,
-    required this.proficiencyController,
+    TextEditingController? skillController,
+    TextEditingController? proficiencyController,
     this.isSaved = false,
-  }) {
-    proficiencyController.text = 'Beginner';
+    bool? isExpanded,
+    int? id,
+  })  : id = id ?? _idCounter++,
+        isExpanded = isExpanded ?? true,
+        skillController = skillController ?? TextEditingController(),
+        proficiencyController =
+            proficiencyController ?? TextEditingController(text: 'Beginner');
+
+  // Getters for convenience
+  String get skillName => skillController.text;
+  String get proficiency => proficiencyController.text;
+
+  // Convert to Map
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'skill': skillName,
+      'proficiency': proficiency,
+      'isSaved': isSaved,
+      'isExpanded': isExpanded,
+    };
   }
 
+  // Dispose controllers to avoid memory leaks
   void dispose() {
     skillController.dispose();
     proficiencyController.dispose();
   }
-
-  // Convert to Map
-  Map<String, String> toMap() {
-    return {
-      'skill': skillController.text,
-      'proficiency': proficiencyController.text,
-    };
-  }
 }
 
 class Language {
+  final int id;
   TextEditingController languageNameController;
   TextEditingController proficiencyController;
   bool isSaved;
+  bool isExpanded;
+
+  static int _idCounter = 0;
 
   Language({
-    required this.languageNameController,
-    required this.proficiencyController,
+    TextEditingController? languageNameController,
+    TextEditingController? proficiencyController,
     this.isSaved = false,
-  }) {
-    proficiencyController.text = 'Beginner';
+    bool? isExpanded,
+    int? id,
+  })  : id = id ?? _idCounter++,
+        isExpanded = isExpanded ?? true,
+        languageNameController =
+            languageNameController ?? TextEditingController(),
+        proficiencyController =
+            proficiencyController ?? TextEditingController(text: 'Beginner');
+
+  // Getters for convenience
+  String get languageName => languageNameController.text;
+  String get proficiency => proficiencyController.text;
+
+  // Convert to Map
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'language': languageName,
+      'proficiency': proficiency,
+      'isSaved': isSaved,
+      'isExpanded': isExpanded,
+    };
   }
 
+  // Dispose controllers to avoid memory leaks
   void dispose() {
     languageNameController.dispose();
     proficiencyController.dispose();
-  }
-
-  // Convert to Map
-  Map<String, String> toMap() {
-    return {
-      'language': languageNameController.text,
-      'proficiency': proficiencyController.text,
-    };
   }
 }
 
@@ -166,16 +237,14 @@ class ResumeProvider with ChangeNotifier {
       'phone': phoneController.text,
       'linkedIn': linkedInController.text,
       'portfolio': portfolioController.text,
-      'workExperiences':
-          _workExperiences.map((experience) => experience.toMap()).toList(),
-      'education':
-          _educationList.map((education) => education.toMap()).toList(),
+      'workExperiences': _workExperiences.map((exp) => exp.toMap()).toList(),
+      'education': _educationList.map((edu) => edu.toMap()).toList(),
       'skills': _skillsList.map((skill) => skill.toMap()).toList(),
-      'languages': _languagesList.map((language) => language.toMap()).toList(),
+      'languages': _languagesList.map((lang) => lang.toMap()).toList(),
     };
   }
 
-  // Methods to set resume data from a fetched map
+  // Method to set resume data from a fetched map
   void setResumeData(Map<String, dynamic> resumeData) {
     clearAllData(); // Clear existing data before setting new data
 
@@ -187,33 +256,33 @@ class ResumeProvider with ChangeNotifier {
     portfolioController.text = resumeData['portfolio'] ?? '';
 
     // Set work experiences
-    for (var experienceData in resumeData['workExperiences'] ?? []) {
+    for (var expData in resumeData['workExperiences'] ?? []) {
       _workExperiences.add(WorkExperience(
-        jobTitleController:
-            TextEditingController(text: experienceData['jobTitle']),
-        companyController:
-            TextEditingController(text: experienceData['companyName']),
-        startDateController:
-            TextEditingController(text: experienceData['startDate']),
-        endDateController:
-            TextEditingController(text: experienceData['endDate']),
+        jobTitleController: TextEditingController(text: expData['jobTitle']),
+        companyController: TextEditingController(text: expData['companyName']),
+        startDateController: TextEditingController(text: expData['startDate']),
+        endDateController: TextEditingController(text: expData['endDate']),
         descriptionController:
-            TextEditingController(text: experienceData['description']),
+            TextEditingController(text: expData['description']),
+        isSaved: expData['isSaved'] ?? true,
+        isExpanded: expData['isExpanded'] ?? false,
+        id: expData['id'],
       ));
     }
 
     // Set education
-    for (var educationData in resumeData['education'] ?? []) {
+    for (var eduData in resumeData['education'] ?? []) {
       _educationList.add(Education(
         schoolNameController:
-            TextEditingController(text: educationData['schoolName']),
-        degreeController: TextEditingController(text: educationData['degree']),
+            TextEditingController(text: eduData['schoolName']),
+        degreeController: TextEditingController(text: eduData['degree']),
         fieldOfStudyController:
-            TextEditingController(text: educationData['fieldOfStudy']),
-        startYearController:
-            TextEditingController(text: educationData['startYear']),
-        endYearController:
-            TextEditingController(text: educationData['endYear']),
+            TextEditingController(text: eduData['fieldOfStudy']),
+        startYearController: TextEditingController(text: eduData['startYear']),
+        endYearController: TextEditingController(text: eduData['endYear']),
+        isSaved: eduData['isSaved'] ?? true,
+        isExpanded: eduData['isExpanded'] ?? false,
+        id: eduData['id'],
       ));
     }
 
@@ -223,16 +292,22 @@ class ResumeProvider with ChangeNotifier {
         skillController: TextEditingController(text: skillData['skill']),
         proficiencyController:
             TextEditingController(text: skillData['proficiency']),
+        isSaved: skillData['isSaved'] ?? true,
+        isExpanded: skillData['isExpanded'] ?? false,
+        id: skillData['id'],
       ));
     }
 
     // Set languages
-    for (var languageData in resumeData['languages'] ?? []) {
+    for (var langData in resumeData['languages'] ?? []) {
       _languagesList.add(Language(
         languageNameController:
-            TextEditingController(text: languageData['language']),
+            TextEditingController(text: langData['language']),
         proficiencyController:
-            TextEditingController(text: languageData['proficiency']),
+            TextEditingController(text: langData['proficiency']),
+        isSaved: langData['isSaved'] ?? true,
+        isExpanded: langData['isExpanded'] ?? false,
+        id: langData['id'],
       ));
     }
 
@@ -245,8 +320,14 @@ class ResumeProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void removeExperience(int index) {
-    if (index < _workExperiences.length) {
+  void addExperienceAtTop(WorkExperience experience) {
+    _workExperiences.insert(0, experience);
+    notifyListeners();
+  }
+
+  void removeExperienceById(int id) {
+    final index = _workExperiences.indexWhere((exp) => exp.id == id);
+    if (index != -1) {
       _workExperiences[index].dispose();
       _workExperiences.removeAt(index);
       notifyListeners();
@@ -261,8 +342,14 @@ class ResumeProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void removeEducation(int index) {
-    if (index < _educationList.length) {
+  void addEducationAtTop(Education education) {
+    _educationList.insert(0, education);
+    notifyListeners();
+  }
+
+  void removeEducationById(int id) {
+    final index = _educationList.indexWhere((edu) => edu.id == id);
+    if (index != -1) {
       _educationList[index].dispose();
       _educationList.removeAt(index);
       notifyListeners();
@@ -277,8 +364,14 @@ class ResumeProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void removeSkill(int index) {
-    if (index < _skillsList.length) {
+  void addSkillAtTop(Skill skill) {
+    _skillsList.insert(0, skill);
+    notifyListeners();
+  }
+
+  void removeSkillById(int id) {
+    final index = _skillsList.indexWhere((skill) => skill.id == id);
+    if (index != -1) {
       _skillsList[index].dispose();
       _skillsList.removeAt(index);
       notifyListeners();
@@ -293,8 +386,14 @@ class ResumeProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void removeLanguage(int index) {
-    if (index < _languagesList.length) {
+  void addLanguageAtTop(Language language) {
+    _languagesList.insert(0, language);
+    notifyListeners();
+  }
+
+  void removeLanguageById(int id) {
+    final index = _languagesList.indexWhere((lang) => lang.id == id);
+    if (index != -1) {
       _languagesList[index].dispose();
       _languagesList.removeAt(index);
       notifyListeners();
