@@ -4,7 +4,7 @@ import 'shared_layout.dart'; // Import the shared layout
 import 'resume_provider.dart';
 
 class ResumeFormPage extends StatefulWidget {
-  const ResumeFormPage({Key? key}) : super(key: key);
+  const ResumeFormPage({super.key});
 
   @override
   _ResumeFormPageState createState() => _ResumeFormPageState();
@@ -112,9 +112,9 @@ class WorkExperiencePanel extends StatefulWidget {
   final WorkExperience experience;
 
   const WorkExperiencePanel({
-    Key? key,
+    super.key,
     required this.experience,
-  }) : super(key: key);
+  });
 
   @override
   _WorkExperiencePanelState createState() => _WorkExperiencePanelState();

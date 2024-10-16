@@ -4,7 +4,7 @@ import 'resume_provider.dart';
 import 'shared_layout.dart'; // Import the shared layout
 
 class SkillsFormPage extends StatefulWidget {
-  const SkillsFormPage({Key? key}) : super(key: key);
+  const SkillsFormPage({super.key});
 
   @override
   _SkillsFormPageState createState() => _SkillsFormPageState();
@@ -114,10 +114,10 @@ class SkillPanel extends StatefulWidget {
   final GlobalKey<FormState> formKey;
 
   const SkillPanel({
-    Key? key,
+    super.key,
     required this.skill,
     required this.formKey,
-  }) : super(key: key);
+  });
 
   @override
   _SkillPanelState createState() => _SkillPanelState();

@@ -19,6 +19,7 @@ import 'package:job_seeker/pages/skill_based_resumes_page.dart';
 import 'package:job_seeker/pages/application_tracker_page.dart';
 import 'package:job_seeker/pages/market_trends_page.dart';
 import 'package:job_seeker/pages/interview_prep_page.dart';
+import 'package:job_seeker/pages/tasksPage.dart'; // Assuming this is the task page file name
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +63,8 @@ class MyApp extends StatelessWidget {
           '/applicationTracker': (context) => const ApplicationTrackerPage(),
           '/marketTrends': (context) => const MarketTrendsPage(),
           '/interviewPrep': (context) => const InterviewPrepPage(),
+          '/tasks': (context) =>
+              TasksPage(), // <-- Add this line for the task page
         },
       ),
     );

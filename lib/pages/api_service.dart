@@ -9,7 +9,7 @@ class ApiService {
   static Future<Map<String, dynamic>> addResume(
       String token, Map<String, dynamic> resumeData) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/add-resume'),
+      Uri.parse('$baseUrl/resumes'), // Update to /resumes
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -27,7 +27,7 @@ class ApiService {
   // Function to retrieve resumes
   static Future<List<dynamic>> getResumes(String token) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/resumes'),
+      Uri.parse('$baseUrl/resumes'), // This is already correct
       headers: {
         'Authorization': 'Bearer $token',
       },
@@ -43,7 +43,7 @@ class ApiService {
   // Function to delete a resume by ID
   static Future<void> deleteResume(String token, String resumeId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/resumes/$resumeId'),
+      Uri.parse('$baseUrl/resumes/$resumeId'), // This is already correct
       headers: {
         'Authorization': 'Bearer $token',
       },
