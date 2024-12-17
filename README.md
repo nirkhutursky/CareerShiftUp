@@ -50,7 +50,7 @@ This project is a feature-rich resume-building tool where users can input their 
 - **Framework**: Flutter (Dart)
 - **State Management**: Provider
 - **UI Components**: Material Design Widgets
-- **Backend**: JS, next.js
+- **Backend**: JS, next.js, Firebase, Firestore, GCP
 - **Tools**:
   - Android Studio / Visual Studio Code
   - Dart DevTools
