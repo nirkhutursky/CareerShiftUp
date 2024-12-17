@@ -50,6 +50,7 @@ This project is a feature-rich resume-building tool where users can input their 
 - **Framework**: Flutter (Dart)
 - **State Management**: Provider
 - **UI Components**: Material Design Widgets
+- **Backend**: JS, next.js
 - **Tools**:
   - Android Studio / Visual Studio Code
   - Dart DevTools
@@ -90,28 +91,6 @@ This project is a feature-rich resume-building tool where users can input their 
    ```
 
 ---
-
-## Project Structure
-
-```
-lib/
-|-- main.dart                 # Entry point of the application
-|-- shared_layout.dart        # Shared layout widget with top navigation
-|-- resume_provider.dart      # Provider for managing app-wide state
-|-- screens/
-|   |-- personal_info_page.dart   # Personal Information Form
-|   |-- languages_form_page.dart  # Languages Input Form
-|   |-- resume_form_page.dart     # Work Experience Form
-|-- models/
-|   |-- language.dart         # Language model
-|   |-- work_experience.dart  # Work Experience model
-|-- widgets/
-|   |-- text_form_field.dart  # Reusable Text Form Field Widget
-|   |-- year_picker.dart      # Year Picker Widget
-```
-
----
-
 ## Key Flutter Concepts Used
 
 ### 1. **State Management with Provider**
@@ -154,8 +133,7 @@ lib/
      - Role Description
    - Supports multiple work experiences with dynamic panels.
 
-### 4. **Education Form** (Planned)
-   - Similar structure to Work Experience.
+
 
 ---
 
@@ -208,7 +186,7 @@ We welcome contributions! Follow these steps:
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the No License.
 
 ---
 
