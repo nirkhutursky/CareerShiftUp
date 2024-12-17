@@ -47,12 +47,16 @@ This project is a feature-rich resume-building tool where users can input their 
 
 ## Technologies Used
 
-- **Framework**: Flutter (Dart)
+- **Frontend**: Flutter (Dart)
 - **State Management**: Provider
-- **UI Components**: Material Design Widgets
-- **Backend**: JS, next.js, Firebase, Firestore, GCP
+- **Backend**:
+  - **JavaScript**: Node.js with Next.js for backend APIs.
+  - **Firestore**: Cloud-based storage for user data.
+- **Authentication**: Google Sign-In via Firebase Authentication.
+- **AI Integration**: Google Gemini AI and Vertex AI (experimental).
 - **Tools**:
   - Android Studio / Visual Studio Code
+  - Firebase Console
   - Dart DevTools
 
 ---
@@ -62,7 +66,9 @@ This project is a feature-rich resume-building tool where users can input their 
 ### Prerequisites
 
 - Install Flutter SDK: [Flutter Installation Guide](https://flutter.dev/docs/get-started/install)
-- Ensure you have Android Studio or VS Code installed with Flutter and Dart plugins.
+- Install Node.js: [Node.js Setup](https://nodejs.org/)
+- Firebase Project Setup: [Firebase Setup](https://firebase.google.com/)
+- Ensure Android Studio or VS Code is installed with Flutter and Dart plugins.
 
 ### Steps
 
@@ -110,32 +116,7 @@ This project is a feature-rich resume-building tool where users can input their 
 
 ---
 
-## Screens Overview
 
-### 1. **Personal Information Form**
-   - Input fields for:
-     - Full Name
-     - Email Address
-     - Phone Number
-     - LinkedIn Profile
-     - Portfolio Website
-
-### 2. **Languages Form**
-   - Add languages with dropdowns to select proficiency levels:
-     - Beginner, Elementary, Intermediate, Advanced, etc.
-   - Supports dynamic addition and deletion of languages.
-
-### 3. **Work Experience Form**
-   - Input fields for:
-     - Job Title
-     - Company Name
-     - Start Year / End Year (with Year Picker)
-     - Role Description
-   - Supports multiple work experiences with dynamic panels.
-
-
-
----
 
 ## Next Steps
 
