@@ -44,3 +44,4 @@ app.*.map.json
 careershiftup-firebase-adminsdk-uv3ef-083c710b17.json
 .env
 backend/auth_test.html
+firebase.json
